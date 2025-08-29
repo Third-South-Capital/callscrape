@@ -1026,10 +1026,8 @@
                 const rect = sliderTrack.getBoundingClientRect();
                 const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
                 
-                const minDate = getMinDate();
-                const maxDate = getMaxDate();
-                const range = maxDate - minDate;
-                const newDate = new Date(minDate.getTime() + range * percent);
+                // Use the new mapping functions
+                const newDate = sliderPercentToDate(percent);
                 
                 if (activeHandle.dataset.handle === 'min') {
                     if (newDate < dateRangeMax) {
@@ -1074,6 +1072,51 @@
             return new Date(Math.max(...dates));
         }
         
+        // Get the cutoff date for "long term" (2 months from today)
+        function getLongTermCutoff() {
+            const today = new Date();
+            const cutoff = new Date(today);
+            cutoff.setMonth(cutoff.getMonth() + 2);
+            cutoff.setHours(0, 0, 0, 0);
+            return cutoff;
+        }
+        
+        // Map a date to slider position (compress dates after Oct 1)
+        function dateToSliderPercent(date) {
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const cutoff = getLongTermCutoff();
+            
+            // If date is before cutoff, use first 80% of slider
+            if (date <= cutoff) {
+                const range = cutoff - minDate;
+                const percent = (date - minDate) / range * 0.8; // Use 80% of slider
+                return Math.max(0, Math.min(0.8, percent));
+            } else {
+                // After cutoff, compress into last 20% of slider
+                const range = maxDate - cutoff;
+                const percent = 0.8 + (date - cutoff) / range * 0.2; // Use last 20%
+                return Math.max(0.8, Math.min(1, percent));
+            }
+        }
+        
+        // Map slider position to date (decompress for dates after Oct 1)
+        function sliderPercentToDate(percent) {
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const cutoff = getLongTermCutoff();
+            
+            if (percent <= 0.8) {
+                // First 80% maps to dates before cutoff
+                const range = cutoff - minDate;
+                return new Date(minDate.getTime() + range * (percent / 0.8));
+            } else {
+                // Last 20% maps to dates after cutoff
+                const range = maxDate - cutoff;
+                return new Date(cutoff.getTime() + range * ((percent - 0.8) / 0.2));
+            }
+        }
+        
         // Update date range
         function updateDateRange() {
             dateRangeMin = getMinDate();
@@ -1083,12 +1126,9 @@
         
         // Update slider visual position
         function updateSliderPosition() {
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const range = maxDate - minDate;
-            
-            const minPercent = ((dateRangeMin - minDate) / range) * 100;
-            const maxPercent = ((dateRangeMax - minDate) / range) * 100;
+            // Use the mapping functions for accurate positioning
+            const minPercent = dateToSliderPercent(dateRangeMin) * 100;
+            const maxPercent = dateToSliderPercent(dateRangeMax) * 100;
             
             document.getElementById('sliderHandleMin').style.left = minPercent + '%';
             document.getElementById('sliderHandleMax').style.left = maxPercent + '%';
@@ -1100,6 +1140,12 @@
             // Update display text
             const formatDate = (date) => {
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const cutoff = getLongTermCutoff();
+                
+                // Add "Long term" label if past cutoff
+                if (date > cutoff) {
+                    return `${months[date.getMonth()]} ${date.getDate()} (Long term)`;
+                }
                 return `${months[date.getMonth()]} ${date.getDate()}`;
             };
             
@@ -1115,39 +1161,68 @@
             const container = document.getElementById('histogramBars');
             container.innerHTML = '';
             
-            // Count deadlines by day
-            const deadlineCounts = {};
+            const cutoff = getLongTermCutoff();
             const minDate = getMinDate();
             const maxDate = getMaxDate();
-            const days = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+            
+            // Count deadlines
+            const nearTermCounts = {}; // Before cutoff
+            let longTermCount = 0; // After cutoff
             
             opportunities.forEach(o => {
                 if (o.deadline_parsed) {
                     const date = new Date(o.deadline_parsed);
-                    const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
-                    deadlineCounts[dayIndex] = (deadlineCounts[dayIndex] || 0) + 1;
+                    if (date <= cutoff) {
+                        const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
+                        nearTermCounts[dayIndex] = (nearTermCounts[dayIndex] || 0) + 1;
+                    } else {
+                        longTermCount++;
+                    }
                 }
             });
             
-            // Create bars (max 100 bars)
-            const numBars = Math.min(100, days);
-            const daysPerBar = days / numBars;
-            const maxCount = Math.max(...Object.values(deadlineCounts), 1);
+            // Create bars - 80 for near term, 20 for long term
+            const numNearBars = 80;
+            const numLongBars = 20;
+            const nearDays = Math.ceil((cutoff - minDate) / (1000 * 60 * 60 * 24));
+            const daysPerNearBar = Math.max(1, nearDays / numNearBars);
             
-            for (let i = 0; i < numBars; i++) {
+            const allCounts = [...Object.values(nearTermCounts), longTermCount];
+            const maxCount = Math.max(...allCounts, 1);
+            
+            // Near term bars (first 80%)
+            for (let i = 0; i < numNearBars; i++) {
                 const bar = document.createElement('div');
                 bar.className = 'histogram-bar';
                 
-                // Count deadlines in this bar's range
                 let count = 0;
-                for (let day = Math.floor(i * daysPerBar); day < Math.floor((i + 1) * daysPerBar); day++) {
-                    count += deadlineCounts[day] || 0;
+                for (let day = Math.floor(i * daysPerNearBar); day < Math.floor((i + 1) * daysPerNearBar); day++) {
+                    count += nearTermCounts[day] || 0;
                 }
                 
                 const height = (count / maxCount) * 100;
                 bar.style.height = height + '%';
                 bar.dataset.index = i;
                 bar.dataset.count = count;
+                
+                container.appendChild(bar);
+            }
+            
+            // Long term bars (last 20%) - distribute the count
+            const countPerLongBar = longTermCount / numLongBars;
+            for (let i = 0; i < numLongBars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'histogram-bar';
+                
+                const height = (countPerLongBar / maxCount) * 100;
+                bar.style.height = height + '%';
+                bar.dataset.index = numNearBars + i;
+                bar.dataset.count = Math.round(countPerLongBar);
+                
+                // Add visual indicator for long term section
+                if (i === 0) {
+                    bar.style.borderLeft = '2px solid #cbd5e0';
+                }
                 
                 container.appendChild(bar);
             }
