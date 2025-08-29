@@ -880,7 +880,30 @@
                         ${o.location_country && o.location_country !== 'USA' ? 
                             `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">🌍 ${o.location_country}</div>` : ''}
                         ${o.fee_raw ? `<div class="meta-item">💰 ${o.fee_raw}</div>` : ''}
+                        ${(() => {
+                            // Parse extras for additional fees (Zapplication)
+                            let extras = o.extras;
+                            if (typeof extras === 'string') {
+                                try { extras = JSON.parse(extras); } catch(e) { extras = {}; }
+                            }
+                            const appFee = extras?.application_fee;
+                            const boothFee = extras?.booth_fee;
+                            const eventDates = extras?.event_dates;
+                            
+                            let html = '';
+                            if (appFee && !o.fee_raw?.includes(appFee)) {
+                                html += `<div class="meta-item" style="font-size: 0.85rem;">💵 App: ${appFee}</div>`;
+                            }
+                            if (boothFee) {
+                                html += `<div class="meta-item" style="font-size: 0.85rem;">🏪 Booth: ${boothFee}</div>`;
+                            }
+                            if (eventDates) {
+                                html += `<div class="meta-item" style="font-size: 0.85rem;">📆 ${eventDates}</div>`;
+                            }
+                            return html;
+                        })()}
                         ${o.event_type ? `<div class="meta-item">🎨 ${o.event_type}</div>` : ''}
+                        ${o.eligibility ? `<div class="meta-item" style="font-size: 0.85rem; color: #7f8c8d;">👥 ${o.eligibility}</div>` : ''}
                     </div>
                     
                     ${o.organization ? `<p style="margin-top: 0.5rem; color: #7f8c8d;">${o.organization}</p>` : ''}

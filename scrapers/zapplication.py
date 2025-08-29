@@ -126,6 +126,53 @@ class ZapplicationScraper(BaseScraper):
                     event_data['deadline'] = match.group(1).strip()
                     break
             
+            # Extract description - look for the main event description
+            description = ""
+            
+            # Try to find actual event description (not contact info)
+            # Split body text into lines
+            lines = body_text.split('\n')
+            
+            # Look for description after the title
+            if 'title' in event_data:
+                title_found = False
+                desc_lines = []
+                
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    
+                    # Find the title
+                    if event_data['title'] in line:
+                        title_found = True
+                        continue
+                    
+                    # After title, collect description lines
+                    if title_found:
+                        # Stop at these markers
+                        if any(marker in line for marker in [
+                            'Application Deadline', 'Application Fee', 'Booth Fee',
+                            'Contact Information', 'Show Hours', 'Setup Time',
+                            'Click here', 'Visit our', '$', 'ZAPP'
+                        ]):
+                            break
+                        
+                        # Skip empty lines and short lines
+                        if len(line) > 30:
+                            desc_lines.append(line)
+                            
+                        # Stop after getting a good paragraph
+                        if len(desc_lines) >= 2:
+                            break
+                
+                if desc_lines:
+                    description = ' '.join(desc_lines[:3])  # Take first 3 lines max
+            
+            # Clean up description
+            if description and not description.startswith('Contact Information'):
+                # Remove excessive whitespace
+                description = ' '.join(description.split())
+                event_data['description'] = description[:500]  # Limit to 500 chars
+            
             # Fees
             app_fee_match = re.search(r'Application Fee[:\s]+\$?([\d,]+(?:\.\d{2})?)', body_text)
             if app_fee_match:
