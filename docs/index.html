@@ -1072,48 +1072,48 @@
             return new Date(Math.max(...dates));
         }
         
-        // Get the cutoff date for "long term" (2 months from today)
+        // Get the cutoff date for "long term" (8 weeks from today)
         function getLongTermCutoff() {
             const today = new Date();
             const cutoff = new Date(today);
-            cutoff.setMonth(cutoff.getMonth() + 2);
+            cutoff.setDate(cutoff.getDate() + 56); // 8 weeks = 56 days
             cutoff.setHours(0, 0, 0, 0);
             return cutoff;
         }
         
-        // Map a date to slider position (compress dates after Oct 1)
+        // Map a date to slider position (compress dates after 8 weeks)
         function dateToSliderPercent(date) {
             const minDate = getMinDate();
             const maxDate = getMaxDate();
             const cutoff = getLongTermCutoff();
             
-            // If date is before cutoff, use first 80% of slider
+            // If date is before cutoff, use first 85% of slider
             if (date <= cutoff) {
                 const range = cutoff - minDate;
-                const percent = (date - minDate) / range * 0.8; // Use 80% of slider
-                return Math.max(0, Math.min(0.8, percent));
+                const percent = (date - minDate) / range * 0.85; // Use 85% of slider
+                return Math.max(0, Math.min(0.85, percent));
             } else {
-                // After cutoff, compress into last 20% of slider
+                // After cutoff, compress into last 15% of slider
                 const range = maxDate - cutoff;
-                const percent = 0.8 + (date - cutoff) / range * 0.2; // Use last 20%
-                return Math.max(0.8, Math.min(1, percent));
+                const percent = 0.85 + (date - cutoff) / range * 0.15; // Use last 15%
+                return Math.max(0.85, Math.min(1, percent));
             }
         }
         
-        // Map slider position to date (decompress for dates after Oct 1)
+        // Map slider position to date (decompress for dates after 8 weeks)
         function sliderPercentToDate(percent) {
             const minDate = getMinDate();
             const maxDate = getMaxDate();
             const cutoff = getLongTermCutoff();
             
-            if (percent <= 0.8) {
-                // First 80% maps to dates before cutoff
+            if (percent <= 0.85) {
+                // First 85% maps to dates before cutoff
                 const range = cutoff - minDate;
-                return new Date(minDate.getTime() + range * (percent / 0.8));
+                return new Date(minDate.getTime() + range * (percent / 0.85));
             } else {
-                // Last 20% maps to dates after cutoff
+                // Last 15% maps to dates after cutoff
                 const range = maxDate - cutoff;
-                return new Date(cutoff.getTime() + range * ((percent - 0.8) / 0.2));
+                return new Date(cutoff.getTime() + range * ((percent - 0.85) / 0.15));
             }
         }
         
@@ -1161,68 +1161,76 @@
             const container = document.getElementById('histogramBars');
             container.innerHTML = '';
             
-            const cutoff = getLongTermCutoff();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Focus on next 8 weeks (56 days)
+            const eightWeeksOut = new Date(today);
+            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56);
+            
             const minDate = getMinDate();
             const maxDate = getMaxDate();
             
             // Count deadlines
-            const nearTermCounts = {}; // Before cutoff
-            let longTermCount = 0; // After cutoff
+            const dailyCounts = {}; // Daily counts for next 8 weeks
+            let longTermCount = 0; // Everything after 8 weeks
             
             opportunities.forEach(o => {
                 if (o.deadline_parsed) {
                     const date = new Date(o.deadline_parsed);
-                    if (date <= cutoff) {
+                    if (date <= eightWeeksOut) {
                         const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
-                        nearTermCounts[dayIndex] = (nearTermCounts[dayIndex] || 0) + 1;
+                        dailyCounts[dayIndex] = (dailyCounts[dayIndex] || 0) + 1;
                     } else {
                         longTermCount++;
                     }
                 }
             });
             
-            // Create bars - 80 for near term, 20 for long term
-            const numNearBars = 80;
-            const numLongBars = 20;
-            const nearDays = Math.ceil((cutoff - minDate) / (1000 * 60 * 60 * 24));
-            const daysPerNearBar = Math.max(1, nearDays / numNearBars);
+            // Create bars - 56 bars for next 8 weeks (one per day)
+            const numDayBars = 56;
+            const daysToShow = Math.min(56, Math.ceil((eightWeeksOut - minDate) / (1000 * 60 * 60 * 24)));
             
-            const allCounts = [...Object.values(nearTermCounts), longTermCount];
-            const maxCount = Math.max(...allCounts, 1);
+            // Calculate max count ONLY from the 8-week period (not long term)
+            const maxCount = Math.max(...Object.values(dailyCounts), 1);
             
-            // Near term bars (first 80%)
-            for (let i = 0; i < numNearBars; i++) {
+            // Daily bars for next 8 weeks (85% of slider width)
+            for (let i = 0; i < numDayBars; i++) {
                 const bar = document.createElement('div');
                 bar.className = 'histogram-bar';
+                bar.style.width = `${85 / numDayBars}%`; // Take up 85% total
                 
-                let count = 0;
-                for (let day = Math.floor(i * daysPerNearBar); day < Math.floor((i + 1) * daysPerNearBar); day++) {
-                    count += nearTermCounts[day] || 0;
-                }
-                
+                const count = dailyCounts[i] || 0;
                 const height = (count / maxCount) * 100;
                 bar.style.height = height + '%';
                 bar.dataset.index = i;
                 bar.dataset.count = count;
                 
+                // Add week separators
+                if (i % 7 === 0 && i > 0) {
+                    bar.style.borderLeft = '1px solid #e5e7eb';
+                }
+                
                 container.appendChild(bar);
             }
             
-            // Long term section (last 20%) - single consolidated bar
+            // Long term section (last 15%) - single consolidated bar
             if (longTermCount > 0) {
                 // Create a single wide bar for all long-term dates
                 const bar = document.createElement('div');
                 bar.className = 'histogram-bar';
-                bar.style.width = '20%'; // Make it take up the full 20% width
+                bar.style.width = '15%'; // Make it take up the last 15% width
                 bar.style.flex = 'none'; // Prevent flexbox from resizing it
                 
-                const height = (longTermCount / maxCount) * 100;
+                // Use a fixed moderate height (not scaled to Y-axis)
+                const height = Math.min(50, longTermCount * 2); // Cap at 50% height
                 bar.style.height = height + '%';
                 bar.style.borderLeft = '3px solid #3b82f6';
                 bar.style.backgroundColor = '#dbeafe'; // Light blue to distinguish
-                bar.dataset.index = numNearBars;
+                bar.style.opacity = '0.7'; // Slightly transparent to show it's different
+                bar.dataset.index = numDayBars;
                 bar.dataset.count = longTermCount;
-                bar.title = `${longTermCount} opportunities beyond ${cutoff.toLocaleDateString()}`;
+                bar.title = `${longTermCount} opportunities after ${eightWeeksOut.toLocaleDateString()}`;
                 
                 container.appendChild(bar);
             }
