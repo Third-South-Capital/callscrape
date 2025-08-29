@@ -1242,17 +1242,28 @@
         function updateHistogramHighlight() {
             const bars = document.querySelectorAll('.histogram-bar');
             const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const range = maxDate - minDate;
+            const eightWeeksOut = new Date();
+            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56);
             
             bars.forEach((bar, i) => {
-                const barPercent = (i + 0.5) / bars.length;
-                const barDate = new Date(minDate.getTime() + range * barPercent);
-                
-                if (barDate >= dateRangeMin && barDate <= dateRangeMax) {
-                    bar.classList.add('in-range');
+                // First 56 bars are daily bars for the next 8 weeks
+                if (i < 56) {
+                    const barDate = new Date(minDate);
+                    barDate.setDate(barDate.getDate() + i);
+                    
+                    if (barDate >= dateRangeMin && barDate <= dateRangeMax) {
+                        bar.classList.add('in-range');
+                    } else {
+                        bar.classList.remove('in-range');
+                    }
                 } else {
-                    bar.classList.remove('in-range');
+                    // Last bar is the long-term section
+                    // Highlight if the max range extends beyond 8 weeks
+                    if (dateRangeMax > eightWeeksOut) {
+                        bar.classList.add('in-range');
+                    } else {
+                        bar.classList.remove('in-range');
+                    }
                 }
             });
         }
