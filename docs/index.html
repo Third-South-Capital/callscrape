@@ -152,6 +152,44 @@
             cursor: pointer;
         }
         
+        .multi-filter {
+            position: relative;
+        }
+        
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 200px;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .filter-option:hover {
+            background: #f5f7fa;
+        }
+        
+        .filter-option input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+        
+        .filter-option span {
+            font-size: 0.95rem;
+        }
+        
         .stats {
             padding: 1rem 1.5rem;
             background: white;
@@ -377,14 +415,37 @@
                 <input type="text" id="search" placeholder="🔍 Search opportunities...">
             </div>
             
-            <select id="sourceFilter" class="filter-select">
-                <option value="">All Sources</option>
-                <option value="zapplication">ZapApplication</option>
-                <option value="artwork_archive">Artwork Archive</option>
-                <option value="cafe">CaFÉ</option>
-                <option value="showsubmit">ShowSubmit</option>
-                <option value="artcall">ArtCall</option>
-            </select>
+            <div class="multi-filter">
+                <button id="filterToggle" class="filter-select" onclick="toggleFilterDropdown()">
+                    <span id="filterLabel">All Sources</span> ▼
+                </button>
+                <div id="filterDropdown" class="filter-dropdown" style="display: none;">
+                    <label class="filter-option">
+                        <input type="checkbox" value="" id="allSources" checked onchange="toggleAllSources()">
+                        <span>All Sources</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" value="zapplication" class="source-checkbox">
+                        <span>ZapApplication</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" value="artwork_archive" class="source-checkbox">
+                        <span>Artwork Archive</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" value="cafe" class="source-checkbox">
+                        <span>CaFÉ</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" value="showsubmit" class="source-checkbox">
+                        <span>ShowSubmit</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" value="artcall" class="source-checkbox">
+                        <span>ArtCall</span>
+                    </label>
+                </div>
+            </div>
             
             <select id="sortBy" class="filter-select">
                 <option value="deadline">Sort by Deadline</option>
@@ -571,15 +632,32 @@
                     document.getElementById('list').innerHTML = '<div class="error">No data loaded from database</div>';
                 }
                 
-                // Populate source filter with actual values
+                // Populate source filter checkboxes with actual values
                 const uniqueSources = [...new Set(allData.map(o => o.source_platform))].sort();
-                const sourceFilter = document.getElementById('sourceFilter');
-                sourceFilter.innerHTML = '<option value="">All Sources</option>';
+                const filterDropdown = document.getElementById('filterDropdown');
+                
+                // Clear existing checkboxes except "All Sources"
+                const existingCheckboxes = filterDropdown.querySelectorAll('.filter-option:not(:first-child)');
+                existingCheckboxes.forEach(el => el.remove());
+                
+                // Add checkboxes for each source
                 uniqueSources.forEach(source => {
-                    const option = document.createElement('option');
-                    option.value = source;
-                    option.textContent = source.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    sourceFilter.appendChild(option);
+                    const label = document.createElement('label');
+                    label.className = 'filter-option';
+                    label.innerHTML = `
+                        <input type="checkbox" value="${source}" class="source-checkbox">
+                        <span>${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    `;
+                    filterDropdown.appendChild(label);
+                });
+                
+                // Re-setup checkbox listeners
+                document.querySelectorAll('.source-checkbox').forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        document.getElementById('allSources').checked = false;
+                        updateFilterLabel();
+                        filterAndRender();
+                    });
                 });
                 
                 // Update last updated time
@@ -602,8 +680,22 @@
         // Setup event listeners
         function setupEventListeners() {
             document.getElementById('search').addEventListener('input', filterAndRender);
-            document.getElementById('sourceFilter').addEventListener('change', filterAndRender);
             document.getElementById('sortBy').addEventListener('change', sortAndRender);
+            
+            // Setup checkbox listeners
+            document.querySelectorAll('.source-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateFilterLabel();
+                    filterAndRender();
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.multi-filter')) {
+                    document.getElementById('filterDropdown').style.display = 'none';
+                }
+            });
         }
         
         // Update stats
@@ -615,23 +707,70 @@
                 filteredOpportunities.filter(o => o.location_raw).length;
         }
         
+        // Toggle filter dropdown
+        function toggleFilterDropdown() {
+            const dropdown = document.getElementById('filterDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Toggle all sources
+        function toggleAllSources() {
+            const allChecked = document.getElementById('allSources').checked;
+            document.querySelectorAll('.source-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.disabled = allChecked;
+            });
+            updateFilterLabel();
+            filterAndRender();
+        }
+        
+        // Update filter label
+        function updateFilterLabel() {
+            const allChecked = document.getElementById('allSources').checked;
+            if (allChecked) {
+                document.getElementById('filterLabel').textContent = 'All Sources';
+                return;
+            }
+            
+            const checked = Array.from(document.querySelectorAll('.source-checkbox:checked'));
+            if (checked.length === 0) {
+                document.getElementById('filterLabel').textContent = 'Select Sources';
+                document.getElementById('allSources').checked = true;
+                toggleAllSources();
+            } else if (checked.length === 1) {
+                const label = checked[0].parentElement.querySelector('span').textContent;
+                document.getElementById('filterLabel').textContent = label;
+            } else {
+                document.getElementById('filterLabel').textContent = `${checked.length} Sources`;
+            }
+        }
+        
         // Filter and render
         function filterAndRender() {
             const search = document.getElementById('search').value.toLowerCase();
-            const source = document.getElementById('sourceFilter').value;
+            
+            // Get selected sources
+            const allChecked = document.getElementById('allSources').checked;
+            let selectedSources = [];
+            if (!allChecked) {
+                selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked'))
+                    .map(cb => cb.value);
+            }
             
             // Debug filtering
-            if (source) {
-                const sourceMatches = opportunities.filter(o => o.source_platform === source);
-                console.log(`Filtering for source "${source}": found ${sourceMatches.length} matches`);
-                const actualSources = [...new Set(opportunities.map(o => o.source_platform))];
-                console.log('Actual source values in data:', actualSources);
+            if (selectedSources.length > 0) {
+                console.log('Filtering for sources:', selectedSources);
             }
             
             filteredOpportunities = opportunities.filter(o => {
-                if (source && o.source_platform !== source) return false;
+                // Filter by source
+                if (!allChecked && selectedSources.length > 0 && !selectedSources.includes(o.source_platform)) {
+                    return false;
+                }
+                
+                // Filter by search
                 if (search) {
-                    const text = `${o.title} ${o.organization} ${o.location_raw} ${o.description}`.toLowerCase();
+                    const text = `${o.title} ${o.organization} ${o.location_raw} ${o.location_city} ${o.location_state} ${o.location_country} ${o.description}`.toLowerCase();
                     if (!text.includes(search)) return false;
                 }
                 return true;
@@ -702,6 +841,10 @@
                             </div>
                         ` : ''}
                         ${o.location_raw ? `<div class="meta-item">📍 ${o.location_raw}</div>` : ''}
+                        ${o.location_city && o.location_state && o.location_city !== o.location_raw ? 
+                            `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">📍 ${o.location_city}, ${o.location_state}</div>` : ''}
+                        ${o.location_country && o.location_country !== 'USA' ? 
+                            `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">🌍 ${o.location_country}</div>` : ''}
                         ${o.fee_raw ? `<div class="meta-item">💰 ${o.fee_raw}</div>` : ''}
                         ${o.event_type ? `<div class="meta-item">🎨 ${o.event_type}</div>` : ''}
                     </div>
