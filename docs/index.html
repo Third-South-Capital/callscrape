@@ -411,6 +411,143 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        
+        /* Date Range Slider Styles */
+        .date-slider-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 2px solid #e1e8ed;
+            min-width: 300px;
+            flex: 1;
+            max-width: 500px;
+        }
+        
+        .date-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .date-slider-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+        
+        .date-range-display {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .histogram-container {
+            position: relative;
+            height: 60px;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .histogram-bars {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding: 0 10px;
+        }
+        
+        .histogram-bar {
+            flex: 1;
+            background: #cbd5e0;
+            margin: 0 1px;
+            min-height: 2px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .histogram-bar.in-range {
+            background: #667eea;
+        }
+        
+        .histogram-bar:hover {
+            background: #4c51bf;
+        }
+        
+        .slider-track {
+            position: relative;
+            height: 6px;
+            background: #e1e8ed;
+            border-radius: 3px;
+            margin: 1.5rem 10px 0.5rem;
+        }
+        
+        .slider-range {
+            position: absolute;
+            height: 100%;
+            background: #667eea;
+            border-radius: 3px;
+        }
+        
+        .slider-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .slider-handle:active {
+            cursor: grabbing;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .slider-handle.dragging {
+            border-color: #4c51bf;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .hide-expired-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .hide-expired-container input[type="checkbox"] {
+            cursor: pointer;
+        }
+        
+        .hide-expired-container label {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        
+        .controls {
+            background: white;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -481,11 +618,25 @@
                 </div>
             </div>
             
-            <select id="sortBy" class="filter-select">
-                <option value="deadline">Sort by Deadline</option>
-                <option value="created">Sort by Newest</option>
-                <option value="title">Sort by Title</option>
-            </select>
+            <div class="hide-expired-container">
+                <input type="checkbox" id="hideExpired" checked>
+                <label for="hideExpired">Hide expired calls</label>
+            </div>
+            
+            <div class="date-slider-container">
+                <div class="date-slider-header">
+                    <span class="date-slider-label">Deadline Range</span>
+                    <span class="date-range-display" id="dateRangeDisplay">All dates</span>
+                </div>
+                <div class="histogram-container" id="histogramContainer">
+                    <div class="histogram-bars" id="histogramBars"></div>
+                </div>
+                <div class="slider-track" id="sliderTrack">
+                    <div class="slider-range" id="sliderRange"></div>
+                    <div class="slider-handle" id="sliderHandleMin" data-handle="min"></div>
+                    <div class="slider-handle" id="sliderHandleMax" data-handle="max"></div>
+                </div>
+            </div>
             
             <div class="view-toggle">
                 <button class="toggle-btn active" onclick="showView('list')">📋 List</button>
@@ -528,6 +679,10 @@
         let calendar = null;
         let currentPage = 1;
         const itemsPerPage = 50;
+        let dateRangeMin = null;
+        let dateRangeMax = null;
+        let isDragging = false;
+        let activeHandle = null;
         
         // Load saved credentials
         window.onload = () => {
@@ -714,7 +869,8 @@
         // Setup event listeners
         function setupEventListeners() {
             document.getElementById('search').addEventListener('input', filterAndRender);
-            document.getElementById('sortBy').addEventListener('change', sortAndRender);
+            document.getElementById('hideExpired').addEventListener('change', filterAndRender);
+            setupDateSlider();
             
             // Setup checkbox listeners
             document.querySelectorAll('.source-checkbox').forEach(cb => {
@@ -782,6 +938,7 @@
         // Filter and render
         function filterAndRender() {
             const search = document.getElementById('search').value.toLowerCase();
+            const hideExpired = document.getElementById('hideExpired').checked;
             
             // Get selected sources
             const allChecked = document.getElementById('allSources').checked;
@@ -791,15 +948,29 @@
                     .map(cb => cb.value);
             }
             
-            // Debug filtering
-            if (selectedSources.length > 0) {
-                console.log('Filtering for sources:', selectedSources);
-            }
+            const now = new Date();
             
             filteredOpportunities = opportunities.filter(o => {
                 // Filter by source
                 if (!allChecked && selectedSources.length > 0 && !selectedSources.includes(o.source_platform)) {
                     return false;
+                }
+                
+                // Filter by deadline range
+                if (o.deadline_parsed) {
+                    const deadline = new Date(o.deadline_parsed);
+                    
+                    // Hide expired if checkbox is checked
+                    if (hideExpired && deadline < now) {
+                        return false;
+                    }
+                    
+                    // Filter by date range slider
+                    if (dateRangeMin && dateRangeMax) {
+                        if (deadline < dateRangeMin || deadline > dateRangeMax) {
+                            return false;
+                        }
+                    }
                 }
                 
                 // Filter by search
@@ -817,21 +988,190 @@
         
         // Sort and render
         function sortAndRender() {
-            const sortBy = document.getElementById('sortBy').value;
-            
+            // Always sort by deadline (nearest to furthest)
             filteredOpportunities.sort((a, b) => {
-                if (sortBy === 'deadline') {
-                    if (!a.deadline_parsed) return 1;
-                    if (!b.deadline_parsed) return -1;
-                    return new Date(a.deadline_parsed) - new Date(b.deadline_parsed);
-                } else if (sortBy === 'created') {
-                    return new Date(b.scraped_at) - new Date(a.scraped_at);
-                } else {
-                    return (a.title || '').localeCompare(b.title || '');
-                }
+                if (!a.deadline_parsed) return 1;
+                if (!b.deadline_parsed) return -1;
+                return new Date(a.deadline_parsed) - new Date(b.deadline_parsed);
             });
             
             renderList();
+        }
+        
+        // Setup date range slider
+        function setupDateSlider() {
+            const sliderTrack = document.getElementById('sliderTrack');
+            const handleMin = document.getElementById('sliderHandleMin');
+            const handleMax = document.getElementById('sliderHandleMax');
+            
+            // Initialize date range from opportunities
+            updateDateRange();
+            
+            // Build histogram
+            buildHistogram();
+            
+            // Handle dragging
+            [handleMin, handleMax].forEach(handle => {
+                handle.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    activeHandle = handle;
+                    handle.classList.add('dragging');
+                    e.preventDefault();
+                });
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || !activeHandle) return;
+                
+                const rect = sliderTrack.getBoundingClientRect();
+                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                
+                const minDate = getMinDate();
+                const maxDate = getMaxDate();
+                const range = maxDate - minDate;
+                const newDate = new Date(minDate.getTime() + range * percent);
+                
+                if (activeHandle.dataset.handle === 'min') {
+                    if (newDate < dateRangeMax) {
+                        dateRangeMin = newDate;
+                        updateSliderPosition();
+                        filterAndRender();
+                    }
+                } else {
+                    if (newDate > dateRangeMin) {
+                        dateRangeMax = newDate;
+                        updateSliderPosition();
+                        filterAndRender();
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (activeHandle) {
+                    activeHandle.classList.remove('dragging');
+                }
+                isDragging = false;
+                activeHandle = null;
+            });
+        }
+        
+        // Get min/max dates from opportunities
+        function getMinDate() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return today;
+        }
+        
+        function getMaxDate() {
+            const dates = opportunities
+                .filter(o => o.deadline_parsed)
+                .map(o => new Date(o.deadline_parsed));
+            if (dates.length === 0) {
+                const future = new Date();
+                future.setFullYear(future.getFullYear() + 1);
+                return future;
+            }
+            return new Date(Math.max(...dates));
+        }
+        
+        // Update date range
+        function updateDateRange() {
+            dateRangeMin = getMinDate();
+            dateRangeMax = getMaxDate();
+            updateSliderPosition();
+        }
+        
+        // Update slider visual position
+        function updateSliderPosition() {
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const range = maxDate - minDate;
+            
+            const minPercent = ((dateRangeMin - minDate) / range) * 100;
+            const maxPercent = ((dateRangeMax - minDate) / range) * 100;
+            
+            document.getElementById('sliderHandleMin').style.left = minPercent + '%';
+            document.getElementById('sliderHandleMax').style.left = maxPercent + '%';
+            
+            const sliderRange = document.getElementById('sliderRange');
+            sliderRange.style.left = minPercent + '%';
+            sliderRange.style.width = (maxPercent - minPercent) + '%';
+            
+            // Update display text
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getDate()}`;
+            };
+            
+            document.getElementById('dateRangeDisplay').textContent = 
+                `${formatDate(dateRangeMin)} - ${formatDate(dateRangeMax)}`;
+            
+            // Update histogram
+            updateHistogramHighlight();
+        }
+        
+        // Build histogram
+        function buildHistogram() {
+            const container = document.getElementById('histogramBars');
+            container.innerHTML = '';
+            
+            // Count deadlines by day
+            const deadlineCounts = {};
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const days = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+            
+            opportunities.forEach(o => {
+                if (o.deadline_parsed) {
+                    const date = new Date(o.deadline_parsed);
+                    const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
+                    deadlineCounts[dayIndex] = (deadlineCounts[dayIndex] || 0) + 1;
+                }
+            });
+            
+            // Create bars (max 100 bars)
+            const numBars = Math.min(100, days);
+            const daysPerBar = days / numBars;
+            const maxCount = Math.max(...Object.values(deadlineCounts), 1);
+            
+            for (let i = 0; i < numBars; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'histogram-bar';
+                
+                // Count deadlines in this bar's range
+                let count = 0;
+                for (let day = Math.floor(i * daysPerBar); day < Math.floor((i + 1) * daysPerBar); day++) {
+                    count += deadlineCounts[day] || 0;
+                }
+                
+                const height = (count / maxCount) * 100;
+                bar.style.height = height + '%';
+                bar.dataset.index = i;
+                bar.dataset.count = count;
+                
+                container.appendChild(bar);
+            }
+            
+            updateHistogramHighlight();
+        }
+        
+        // Update histogram highlighting
+        function updateHistogramHighlight() {
+            const bars = document.querySelectorAll('.histogram-bar');
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const range = maxDate - minDate;
+            
+            bars.forEach((bar, i) => {
+                const barPercent = (i + 0.5) / bars.length;
+                const barDate = new Date(minDate.getTime() + range * barPercent);
+                
+                if (barDate >= dateRangeMin && barDate <= dateRangeMax) {
+                    bar.classList.add('in-range');
+                } else {
+                    bar.classList.remove('in-range');
+                }
+            });
         }
         
         // Render list
