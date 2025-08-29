@@ -869,16 +869,32 @@
                     <span class="badge badge-${o.source_platform}">${o.source_platform}</span>
                     
                     <div class="card-meta">
-                        ${o.deadline_raw ? `
+                        ${o.deadline_raw || o.deadline_parsed ? `
                             <div class="meta-item ${isDeadlineSoon(o.deadline_parsed) ? 'deadline-soon' : ''}">
-                                📅 ${o.deadline_raw}
+                                📅 ${formatDeadline(o.deadline_raw, o.deadline_parsed)}
                             </div>
                         ` : ''}
-                        ${o.location_raw ? `<div class="meta-item">📍 ${o.location_raw}</div>` : ''}
-                        ${o.location_city && o.location_state && o.location_city !== o.location_raw ? 
-                            `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">📍 ${o.location_city}, ${o.location_state}</div>` : ''}
-                        ${o.location_country && o.location_country !== 'USA' ? 
-                            `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">🌍 ${o.location_country}</div>` : ''}
+                        ${(() => {
+                            // Smart location display - avoid duplicates
+                            let locationHtml = '';
+                            const hasCity = o.location_city && o.location_state;
+                            const cityState = hasCity ? `${o.location_city}, ${o.location_state}` : '';
+                            
+                            // If city/state exists and is different from raw, show city/state
+                            if (hasCity && cityState !== o.location_raw) {
+                                locationHtml = `<div class="meta-item">📍 ${cityState}</div>`;
+                            } else if (o.location_raw) {
+                                // Otherwise just show raw location
+                                locationHtml = `<div class="meta-item">📍 ${o.location_raw}</div>`;
+                            }
+                            
+                            // Add country if not USA
+                            if (o.location_country && o.location_country !== 'USA') {
+                                locationHtml += `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">🌍 ${o.location_country}</div>`;
+                            }
+                            
+                            return locationHtml;
+                        })()}
                         ${o.fee_raw ? `<div class="meta-item">💰 ${o.fee_raw}</div>` : ''}
                         ${(() => {
                             // Parse extras for additional fees (Zapplication)
@@ -980,6 +996,44 @@
             const date = new Date(deadline);
             const days = (date - new Date()) / (1000 * 60 * 60 * 24);
             return days <= 7 && days >= 0;
+        }
+        
+        // Format date nicely with days remaining
+        function formatDeadline(deadlineRaw, deadlineParsed) {
+            if (!deadlineRaw) return '';
+            
+            // If we have a parsed date, format it nicely
+            if (deadlineParsed) {
+                const date = new Date(deadlineParsed);
+                const now = new Date();
+                const daysRemaining = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+                
+                // Format date as "Aug. 31, 2025"
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = months[date.getMonth()];
+                const day = date.getDate();
+                const year = date.getFullYear();
+                
+                let formatted = `${month}. ${day}, ${year}`;
+                
+                // Add days remaining if in the future
+                if (daysRemaining >= 0) {
+                    if (daysRemaining === 0) {
+                        formatted += ' (Today!)';
+                    } else if (daysRemaining === 1) {
+                        formatted += ' (1 day)';
+                    } else if (daysRemaining <= 30) {
+                        formatted += ` (${daysRemaining} days)`;
+                    }
+                } else {
+                    formatted += ' (Expired)';
+                }
+                
+                return formatted;
+            }
+            
+            // Fall back to raw deadline if no parsed date
+            return deadlineRaw;
         }
         
         // Show view
