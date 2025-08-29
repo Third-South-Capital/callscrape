@@ -1144,7 +1144,7 @@
                 
                 // Add "Long term" label if past cutoff
                 if (date > cutoff) {
-                    return `${months[date.getMonth()]} ${date.getDate()} (Long term)`;
+                    return `After ${months[cutoff.getMonth()]} ${cutoff.getDate()} (Long term)`;
                 }
                 return `${months[date.getMonth()]} ${date.getDate()}`;
             };
@@ -1208,21 +1208,21 @@
                 container.appendChild(bar);
             }
             
-            // Long term bars (last 20%) - distribute the count
-            const countPerLongBar = longTermCount / numLongBars;
-            for (let i = 0; i < numLongBars; i++) {
+            // Long term section (last 20%) - single consolidated bar
+            if (longTermCount > 0) {
+                // Create a single wide bar for all long-term dates
                 const bar = document.createElement('div');
                 bar.className = 'histogram-bar';
+                bar.style.width = '20%'; // Make it take up the full 20% width
+                bar.style.flex = 'none'; // Prevent flexbox from resizing it
                 
-                const height = (countPerLongBar / maxCount) * 100;
+                const height = (longTermCount / maxCount) * 100;
                 bar.style.height = height + '%';
-                bar.dataset.index = numNearBars + i;
-                bar.dataset.count = Math.round(countPerLongBar);
-                
-                // Add visual indicator for long term section
-                if (i === 0) {
-                    bar.style.borderLeft = '2px solid #cbd5e0';
-                }
+                bar.style.borderLeft = '3px solid #3b82f6';
+                bar.style.backgroundColor = '#dbeafe'; // Light blue to distinguish
+                bar.dataset.index = numNearBars;
+                bar.dataset.count = longTermCount;
+                bar.title = `${longTermCount} opportunities beyond ${cutoff.toLocaleDateString()}`;
                 
                 container.appendChild(bar);
             }
