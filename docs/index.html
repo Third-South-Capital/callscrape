@@ -238,6 +238,22 @@
             border-color: #667eea;
         }
         
+        .read-more-btn {
+            transition: all 0.2s;
+        }
+        
+        .read-more-btn:hover {
+            background: #5a67d8 !important;
+            transform: translateY(-1px);
+        }
+        
+        .description-full {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
@@ -852,9 +868,23 @@
                     ${o.organization ? `<p style="margin-top: 0.5rem; color: #7f8c8d;">${o.organization}</p>` : ''}
                     
                     ${o.description ? `
-                        <p style="margin-top: 0.5rem; color: #5f6c7d; font-size: 0.9rem;">
-                            ${o.description.substring(0, 150)}${o.description.length > 150 ? '...' : ''}
-                        </p>
+                        <div class="description-container" style="margin-top: 0.75rem;">
+                            <p class="description-preview" style="margin: 0; color: #5f6c7d; font-size: 0.9rem; line-height: 1.4;">
+                                ${o.description.substring(0, 200)}${o.description.length > 200 ? '...' : ''}
+                            </p>
+                            ${o.description.length > 200 ? `
+                                <div class="description-full" style="display: none;">
+                                    <p style="margin: 0; color: #2c3e50; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">
+                                        ${o.description}
+                                    </p>
+                                </div>
+                                <button class="read-more-btn" onclick="event.stopPropagation(); toggleDescription(this);" 
+                                        style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: #667eea; color: white; 
+                                               border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+                                    Read More
+                                </button>
+                            ` : ''}
+                        </div>
                     ` : ''}
                 </div>
             `).join('');
@@ -994,6 +1024,25 @@
                 'artcall': '#a29bfe'
             };
             return colors[source] || '#95a5a6';
+        }
+        
+        // Toggle description
+        function toggleDescription(button) {
+            const container = button.parentElement;
+            const preview = container.querySelector('.description-preview');
+            const full = container.querySelector('.description-full');
+            
+            if (full.style.display === 'none') {
+                preview.style.display = 'none';
+                full.style.display = 'block';
+                button.textContent = 'Read Less';
+                button.style.background = '#5a67d8';
+            } else {
+                preview.style.display = 'block';
+                full.style.display = 'none';
+                button.textContent = 'Read More';
+                button.style.background = '#667eea';
+            }
         }
     </script>
 </body>

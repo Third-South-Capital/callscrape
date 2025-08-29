@@ -259,6 +259,11 @@ if __name__ == "__main__":
         default=None,
         help='Limit number of Zapplication events to scrape (default: all)'
     )
+    parser.add_argument(
+        '--enrich',
+        action='store_true',
+        help='Run smart location enrichment after scraping (uses Claude Haiku)'
+    )
     
     args = parser.parse_args()
     
@@ -304,5 +309,17 @@ if __name__ == "__main__":
                 logger.info(f"\nSyncing to database: {latest_file}")
                 results = db.ingest_from_json(str(latest_file))
                 logger.info(f"Database sync complete: {results}")
+    
+    # Run enrichment if requested
+    if args.enrich:
+        logger.info("\n" + "="*60)
+        logger.info("Running smart location enrichment...")
+        logger.info("="*60)
+        try:
+            from smart_enrichment import SmartEnricher
+            enricher = SmartEnricher()
+            enricher.process_opportunities()
+        except Exception as e:
+            logger.error(f"Enrichment failed: {e}")
     
     sys.exit(0 if success else 1)

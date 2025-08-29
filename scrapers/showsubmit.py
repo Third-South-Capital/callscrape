@@ -90,6 +90,30 @@ class ShowSubmitScraper(BaseScraper):
                 if match:
                     detail_data['location'] = match.group(1).strip()
                     break
+            
+            # Extract description - get the main content paragraphs
+            description_parts = []
+            
+            # Look for main content paragraphs
+            main_content = soup.find('div', class_='show-detail') or soup.find('div', class_='content') or soup
+            paragraphs = main_content.find_all('p')
+            
+            for p in paragraphs:
+                p_text = p.get_text(strip=True)
+                # Skip navigation/header paragraphs
+                if p_text and len(p_text) > 50 and not any(skip in p_text.lower() for skip in ['deadline', 'entry fee', 'email']):
+                    description_parts.append(p_text)
+            
+            # If we didn't find good paragraphs, get all text
+            if not description_parts:
+                # Get all text but clean it up
+                all_text = soup.get_text(separator=' ', strip=True)
+                # Take a chunk from the middle (skip header/footer)
+                if len(all_text) > 200:
+                    description_parts = [all_text[100:800]]
+            
+            if description_parts:
+                detail_data['description'] = ' '.join(description_parts[:3])  # Take first 3 paragraphs
                     
         except Exception as e:
             self.logger.warning(f"Error fetching detail page {url}: {e}")
