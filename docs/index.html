@@ -305,6 +305,17 @@
             gap: 0.25rem;
         }
         
+        .location-not-specified {
+            opacity: 0.6;
+            font-style: italic;
+        }
+        
+        .location-indicator {
+            font-size: 0.8em;
+            opacity: 0.7;
+            font-style: italic;
+        }
+        
         .deadline-soon {
             color: #e74c3c;
             font-weight: 600;
@@ -967,42 +978,80 @@
                             </div>
                         ` : ''}
                         ${(() => {
-                            // Smart location display - avoid duplicates
+                            // Enhanced location display with enrichment support
                             let locationHtml = '';
-                            const hasStructured = o.location_city || o.location_state || o.location_country;
                             
-                            if (hasStructured) {
-                                const parts = [];
-                                if (o.location_city) parts.push(o.location_city);
-                                if (o.location_state) parts.push(o.location_state);
-                                if (o.location_country && o.location_country !== 'United States') {
-                                    parts.push(o.location_country);
-                                }
+                            // Check for enriched location data in extras
+                            if (o.extras && o.extras.location_metadata) {
+                                const meta = o.extras.location_metadata;
+                                const location = meta.enriched || o.location;
                                 
-                                const structured = parts.join(', ');
-                                
-                                // Check if raw location adds any new information
-                                if (o.location_raw) {
-                                    const rawLower = o.location_raw.toLowerCase();
-                                    const structuredLower = structured.toLowerCase();
+                                if (location) {
+                                    // Build display based on confidence and source
+                                    let display = `📍 ${location}`;
+                                    let cssClass = 'meta-item';
                                     
-                                    // If raw contains structured, just use structured
-                                    if (rawLower.includes(structuredLower) || structuredLower.includes(rawLower)) {
-                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                    // Add transparency indicators
+                                    if (meta.confidence === 'not_specified') {
+                                        display = '📍 Location Not Specified';
+                                        cssClass += ' location-not-specified';
+                                    } else if (meta.confidence === 'low') {
+                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(uncertain)</span>';
+                                    } else if (meta.extraction_source === 'description') {
+                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(from description)</span>';
+                                    } else if (meta.extraction_source === 'inferred') {
+                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(inferred)</span>';
                                     }
-                                    // If raw is "Online" or similar, show both
-                                    else if (rawLower.includes('online') || rawLower.includes('virtual') || rawLower.includes('zoom')) {
-                                        locationHtml = `<div class="meta-item">📍 ${o.location_raw} / ${structured}</div>`;
+                                    
+                                    // Add location type icon for online events
+                                    if (meta.type === 'online') {
+                                        display = '🌐 Online';
                                     }
-                                    // Otherwise show structured
-                                    else {
-                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
-                                    }
-                                } else {
-                                    locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                    
+                                    locationHtml = `<div class="${cssClass}">${display}</div>`;
                                 }
-                            } else if (o.location_raw) {
-                                locationHtml = `<div class="meta-item">📍 ${o.location_raw}</div>`;
+                            } 
+                            // Fallback to old location display logic
+                            else {
+                                const hasStructured = o.location_city || o.location_state || o.location_country;
+                                
+                                if (hasStructured) {
+                                    const parts = [];
+                                    if (o.location_city) parts.push(o.location_city);
+                                    if (o.location_state) parts.push(o.location_state);
+                                    if (o.location_country && o.location_country !== 'United States') {
+                                        parts.push(o.location_country);
+                                    }
+                                    
+                                    const structured = parts.join(', ');
+                                    
+                                    // Check if raw location adds any new information
+                                    if (o.location_raw) {
+                                        const rawLower = o.location_raw.toLowerCase();
+                                        const structuredLower = structured.toLowerCase();
+                                        
+                                        // If raw contains structured, just use structured
+                                        if (rawLower.includes(structuredLower) || structuredLower.includes(rawLower)) {
+                                            locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                        }
+                                        // If raw is "Online" or similar, show both
+                                        else if (rawLower.includes('online') || rawLower.includes('virtual') || rawLower.includes('zoom')) {
+                                            locationHtml = `<div class="meta-item">📍 ${o.location_raw} / ${structured}</div>`;
+                                        }
+                                        // Otherwise show structured
+                                        else {
+                                            locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                        }
+                                    } else {
+                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                    }
+                                } else if (o.location_raw) {
+                                    locationHtml = `<div class="meta-item">📍 ${o.location_raw}</div>`;
+                                } else if (o.location) {
+                                    locationHtml = `<div class="meta-item">📍 ${o.location}</div>`;
+                                } else {
+                                    locationHtml = `<div class="meta-item location-not-specified">📍 Location Not Specified</div>`;
+                                }
                             }
                             
                             return locationHtml;
