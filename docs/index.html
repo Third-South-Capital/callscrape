@@ -248,12 +248,12 @@
         
         .card {
             background: white;
-            border-radius: 8px;
-            padding: 1.25rem;
+            border-radius: 6px;
+            padding: 1rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border: 1px solid #e1e8ed;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -261,17 +261,17 @@
         }
         
         .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
             border-color: #667eea;
         }
         
         .card-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
         }
         
         .description-container {
@@ -292,17 +292,16 @@
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #f0f4f8;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: #6b7280;
         }
         
         .meta-item {
-            font-size: 0.85rem;
-            color: #7f8c8d;
+            font-size: 0.875rem;
+            color: #6b7280;
             display: flex;
             align-items: center;
-            gap: 0.25rem;
         }
         
         .location-not-specified {
@@ -974,42 +973,18 @@
                     <div class="card-meta">
                         ${o.deadline_raw || o.deadline_parsed ? `
                             <div class="meta-item ${isDeadlineSoon(o.deadline_parsed) ? 'deadline-soon' : ''}">
-                                📅 ${formatDeadline(o.deadline_raw, o.deadline_parsed)}
+                                ${formatDeadline(o.deadline_raw, o.deadline_parsed)}
                             </div>
                         ` : ''}
                         ${(() => {
-                            // Enhanced location display with enrichment support
+                            // Simplified location display
                             let locationHtml = '';
+                            let locationText = '';
                             
                             // Check for enriched location data in extras
                             if (o.extras && o.extras.location_metadata) {
                                 const meta = o.extras.location_metadata;
-                                const location = meta.enriched || o.location;
-                                
-                                if (location) {
-                                    // Build display based on confidence and source
-                                    let display = `📍 ${location}`;
-                                    let cssClass = 'meta-item';
-                                    
-                                    // Add transparency indicators
-                                    if (meta.confidence === 'not_specified') {
-                                        display = '📍 Location Not Specified';
-                                        cssClass += ' location-not-specified';
-                                    } else if (meta.confidence === 'low') {
-                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(uncertain)</span>';
-                                    } else if (meta.extraction_source === 'description') {
-                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(from description)</span>';
-                                    } else if (meta.extraction_source === 'inferred') {
-                                        display += ' <span style="font-size: 0.8em; opacity: 0.7;">(inferred)</span>';
-                                    }
-                                    
-                                    // Add location type icon for online events
-                                    if (meta.type === 'online') {
-                                        display = '🌐 Online';
-                                    }
-                                    
-                                    locationHtml = `<div class="${cssClass}">${display}</div>`;
-                                }
+                                locationText = meta.enriched || o.location || 'Location Not Specified';
                             } 
                             // Fallback to old location display logic
                             else {
@@ -1022,99 +997,52 @@
                                     if (o.location_country && o.location_country !== 'United States') {
                                         parts.push(o.location_country);
                                     }
-                                    
-                                    const structured = parts.join(', ');
-                                    
-                                    // Check if raw location adds any new information
-                                    if (o.location_raw) {
-                                        const rawLower = o.location_raw.toLowerCase();
-                                        const structuredLower = structured.toLowerCase();
-                                        
-                                        // If raw contains structured, just use structured
-                                        if (rawLower.includes(structuredLower) || structuredLower.includes(rawLower)) {
-                                            locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
-                                        }
-                                        // If raw is "Online" or similar, show both
-                                        else if (rawLower.includes('online') || rawLower.includes('virtual') || rawLower.includes('zoom')) {
-                                            locationHtml = `<div class="meta-item">📍 ${o.location_raw} / ${structured}</div>`;
-                                        }
-                                        // Otherwise show structured
-                                        else {
-                                            locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
-                                        }
-                                    } else {
-                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
-                                    }
+                                    locationText = parts.join(', ');
                                 } else if (o.location_raw) {
-                                    locationHtml = `<div class="meta-item">📍 ${o.location_raw}</div>`;
+                                    locationText = o.location_raw;
                                 } else if (o.location) {
-                                    locationHtml = `<div class="meta-item">📍 ${o.location}</div>`;
+                                    locationText = o.location;
                                 } else {
-                                    locationHtml = `<div class="meta-item location-not-specified">📍 Location Not Specified</div>`;
+                                    locationText = 'Location Not Specified';
                                 }
                             }
+                            
+                            // Simple display without emoji or extra indicators
+                            locationHtml = `<div class="meta-item">${locationText}</div>`;
                             
                             return locationHtml;
                         })()}
-                        ${o.fee_raw ? `
-                            <div class="meta-item">💰 ${o.fee_raw}</div>
-                        ` : ''}
                     </div>
                     
-                    ${o.organization ? `<p style="margin-top: 0.5rem; color: #7f8c8d;">${o.organization}</p>` : ''}
-                    
                     <div class="description-container" style="margin: 0.75rem 0 0 0;">
-                        ${(() => {
-                            // Show artist summary FIRST if available
-                            let summary = '';
-                            if (o.extras && typeof o.extras === 'object') {
-                                summary = o.extras.artist_summary || o.extras.summary;
-                            } else if (o.extras && typeof o.extras === 'string') {
-                                try {
-                                    const extras = JSON.parse(o.extras);
-                                    summary = extras.artist_summary || extras.summary;
-                                } catch(e) {
-                                    // Ignore
-                                }
-                            }
-                            
-                            if (summary && summary !== o.description) {
-                                return `<div style="background: #f8f5ff; border-left: 4px solid #8b5cf6; padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 4px;">
-                                    <p style="color: #6b46c1; font-size: 0.9rem; line-height: 1.5; margin: 0; font-weight: 500;">
-                                        <strong style="color: #8b5cf6;">🎨 Artist Focus:</strong><br>
-                                        ${summary}
-                                    </p>
-                                </div>`;
-                            }
-                            return '';
-                        })()}
-                        
                         <p style="color: #5f6c7d; font-size: 0.9rem; line-height: 1.4; margin: 0;">
                             ${(() => {
-                                // Show description AFTER summary
-                                let description = '';
+                                // Show ONLY artist summary if available, otherwise nothing
+                                let summary = '';
                                 if (o.extras && typeof o.extras === 'object') {
-                                    description = o.extras.enriched_description || o.description;
+                                    summary = o.extras.artist_summary || o.extras.summary || '';
                                 } else if (o.extras && typeof o.extras === 'string') {
                                     try {
                                         const extras = JSON.parse(o.extras);
-                                        description = extras.enriched_description || o.description;
+                                        summary = extras.artist_summary || extras.summary || '';
                                     } catch(e) {
-                                        description = o.description;
+                                        summary = '';
                                     }
-                                } else {
-                                    description = o.description;
                                 }
                                 
-                                if (description) {
-                                    const truncated = description.length > 300 ? description.substring(0, 300) + '...' : description;
-                                    const needsReadMore = description.length > 300 && o.url;
-                                    return truncated + (needsReadMore ? ` <a href="${o.url}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">read more →</a>` : '');
+                                if (summary) {
+                                    return summary;
                                 } else {
-                                    return '<i style="color: #bbb;">No description available</i>';
+                                    return '<i style="color: #bbb;">No artist summary available</i>';
                                 }
                             })()}
                         </p>
+                        
+                        ${o.url ? `
+                            <a href="${o.url}" target="_blank" style="display: inline-block; margin-top: 0.75rem; color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                                read more →
+                            </a>
+                        ` : ''}
                     </div>
                     
                     <span class="badge badge-${o.source_platform}" style="position: absolute; bottom: 0.75rem; right: 0.75rem; font-size: 0.65rem; padding: 0.15rem 0.4rem; opacity: 0.6;">${o.source_platform}</span>

@@ -19,7 +19,18 @@ COUNTRIES = {
     'united states', 'usa', 'canada', 'united kingdom', 'uk', 'australia',
     'germany', 'france', 'italy', 'spain', 'netherlands', 'belgium',
     'japan', 'china', 'india', 'mexico', 'brazil', 'argentina',
-    'south africa', 'egypt', 'israel', 'dubai', 'singapore', 'korea'
+    'south africa', 'egypt', 'israel', 'dubai', 'singapore', 'korea',
+    'sweden', 'norway', 'denmark', 'finland', 'switzerland', 'austria',
+    'portugal', 'greece', 'turkey', 'russia', 'poland', 'czech republic',
+    'new zealand', 'ireland', 'scotland', 'wales'
+}
+
+# Canadian provinces and territories
+CANADIAN_PROVINCES = {
+    'ontario': 'ON', 'quebec': 'QC', 'british columbia': 'BC', 'alberta': 'AB',
+    'manitoba': 'MB', 'saskatchewan': 'SK', 'nova scotia': 'NS',
+    'new brunswick': 'NB', 'newfoundland': 'NL', 'prince edward island': 'PE',
+    'northwest territories': 'NT', 'yukon': 'YT', 'nunavut': 'NU'
 }
 
 # Common venue indicators
@@ -154,9 +165,42 @@ def standardize_location(location: str) -> Optional[str]:
     
     # Check for country (international)
     location_lower = location.lower()
+    
+    # Special handling for Canada - format as Province, Canada
+    if 'canada' in location_lower:
+        # Try to find province
+        for province, abbrev in CANADIAN_PROVINCES.items():
+            if province in location_lower or f', {abbrev}' in location or f' {abbrev} ' in location:
+                # Check for city
+                city_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)[,\s]+(?:' + province + '|' + abbrev + ')', location, re.IGNORECASE)
+                if city_match:
+                    city = city_match.group(1)
+                    city = ' '.join(word.capitalize() for word in city.split())
+                    return f"{city}, {abbrev}, Canada"
+                else:
+                    return f"{abbrev}, Canada"
+        # Check for city without province
+        city_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)[,\s]+Canada', location, re.IGNORECASE)
+        if city_match:
+            city = city_match.group(1)
+            city = ' '.join(word.capitalize() for word in city.split())
+            return f"{city}, Canada"
+        # No city/province found, just return Canada
+        return "Canada"
+    
+    # Handle UK special case
+    if 'uk' in location_lower or 'united kingdom' in location_lower:
+        city_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)[,\s]+(?:UK|United Kingdom)', location, re.IGNORECASE)
+        if city_match:
+            city = city_match.group(1)
+            city = ' '.join(word.capitalize() for word in city.split())
+            return f"{city}, United Kingdom"
+        return "United Kingdom"
+    
+    # Check for other countries
     for country in COUNTRIES:
-        if country in location_lower and country not in ['united states', 'usa']:
-            # Extract city if possible
+        if country in location_lower and country not in ['united states', 'usa', 'canada', 'uk', 'united kingdom']:
+            # Extract city/province if possible
             city_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)[,\s]+' + re.escape(country), location, re.IGNORECASE)
             if city_match:
                 city = city_match.group(1)
