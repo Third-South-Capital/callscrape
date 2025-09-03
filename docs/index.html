@@ -98,62 +98,68 @@
         
         .btn {
             padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn-connect {
             background: #667eea;
             color: white;
-            width: 100%;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
         }
         
-        .btn-connect:hover {
+        .btn:hover {
             background: #5a67d8;
         }
         
-        .btn-connect:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
+        .btn-refresh {
+            margin-left: auto;
+            padding: 0.5rem 1rem;
+            background: #10b981;
+            font-size: 0.9rem;
         }
         
-        .controls {
+        .btn-refresh:hover {
+            background: #059669;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem 1.5rem;
             background: white;
-            padding: 1rem;
+            margin: 0 1rem 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .filters {
             display: flex;
             gap: 1rem;
-            flex-wrap: wrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 300px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
-        .filter-select {
-            padding: 0.75rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
+            padding: 1rem 1.5rem;
             background: white;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        
-        .multi-filter {
-            position: relative;
+            margin: 0 1rem 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            align-items: center;
+            flex-wrap: wrap;
         }
         
         .filter-dropdown {
@@ -164,98 +170,108 @@
             background: white;
             border: 2px solid #e1e8ed;
             border-radius: 8px;
-            padding: 0.5rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             z-index: 1000;
             min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
         }
         
         .filter-option {
             display: flex;
             align-items: center;
-            padding: 0.5rem;
+            padding: 0.5rem 1rem;
             cursor: pointer;
-            border-radius: 4px;
+            transition: background 0.2s;
         }
         
         .filter-option:hover {
-            background: #f5f7fa;
+            background: #f8f9fa;
         }
         
-        .filter-option input[type="checkbox"] {
+        .filter-option input {
             margin-right: 0.5rem;
         }
         
-        .filter-option span {
-            font-size: 0.95rem;
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            height: 52px;
         }
         
-        .stats {
-            padding: 1rem 1.5rem;
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .filter-btn {
+            padding: 0.75rem 1.25rem;
             background: white;
-            display: flex;
-            gap: 2rem;
-            border-bottom: 1px solid #e1e8ed;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
             font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            height: 52px;
         }
         
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .filter-btn:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
         }
         
-        .stat-value {
-            font-weight: 600;
-            color: #667eea;
-        }
-        
-        .container {
-            padding: 1.5rem;
-            max-width: 1400px;
-            margin: 0 auto;
+        .grid-container {
+            padding: 0 1rem 2rem;
         }
         
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            align-items: start;
+        }
+        
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .card {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: all 0.3s;
+            border-radius: 8px;
+            padding: 1.25rem;
             cursor: pointer;
-            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e1e8ed;
             display: flex;
             flex-direction: column;
-            min-height: 200px;
+            position: relative;
+            padding-bottom: 2rem;
         }
         
         .card:hover {
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
             border-color: #667eea;
         }
         
-        .read-more-btn {
-            transition: all 0.2s;
-        }
-        
-        .read-more-btn:hover {
-            background: #5a67d8 !important;
-            transform: translateY(-1px);
-        }
-        
-        .description-full {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 0.5rem;
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
         }
         
         .description-container {
@@ -272,144 +288,110 @@
             -webkit-box-orient: vertical;
         }
         
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: #2c3e50;
-            line-height: 1.3;
-        }
-        
         .card-meta {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.75rem;
-            margin: 0.75rem 0;
-            font-size: 0.85rem;
-            color: #7f8c8d;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f0f4f8;
         }
         
         .meta-item {
+            font-size: 0.85rem;
+            color: #7f8c8d;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
         }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .badge-zapplication { background: #ff6b6b; color: white; }
-        .badge-artwork_archive { background: #4ecdc4; color: white; }
-        .badge-cafe { background: #ffe66d; color: #333; }
-        .badge-showsubmit { background: #74b9ff; color: white; }
-        .badge-artcall { background: #a29bfe; color: white; }
         
         .deadline-soon {
             color: #e74c3c;
             font-weight: 600;
         }
         
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: #95a5a6;
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
+        .badge-cafe { background: #e3f2fd; color: #1976d2; }
+        .badge-zapplication { background: #f3e5f5; color: #7b1fa2; }
+        .badge-artcall { background: #e8f5e9; color: #388e3c; }
+        .badge-artwork_archive { background: #fff3e0; color: #f57c00; }
+        .badge-showsubmit { background: #fce4ec; color: #c2185b; }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem;
-        }
-        
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem;
-        }
-        
-        #calendar {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            display: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .view-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: auto;
-        }
-        
-        .toggle-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid #e1e8ed;
-            background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .toggle-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .toggle-btn:hover {
-            border-color: #667eea;
+        .multi-filter {
+            position: relative;
         }
         
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 0.5rem;
-            margin: 2rem 0;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
         }
         
-        .page-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid #e1e8ed;
+        .page-info {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
             background: white;
-            border-radius: 6px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
         }
         
-        .page-btn.active {
+        .tab:hover {
+            border-color: #667eea;
+        }
+        
+        .tab.active {
             background: #667eea;
             color: white;
             border-color: #667eea;
         }
         
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .calendar-container {
+            background: white;
+            padding: 2rem;
+            margin: 0 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            cursor: pointer;
+            user-select: none;
         }
         
         /* Date Range Slider Styles */
@@ -421,13 +403,17 @@
             min-width: 300px;
             flex: 1;
             max-width: 500px;
+            height: 75px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         
         .date-slider-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
         
         .date-slider-label {
@@ -439,155 +425,163 @@
         .date-range-display {
             font-size: 0.85rem;
             color: #2c3e50;
-            font-weight: 500;
+            font-weight: 600;
         }
         
         .histogram-container {
             position: relative;
-            height: 60px;
-            margin: 1rem 0;
+            height: 120px;
             background: #f8f9fa;
             border-radius: 4px;
             overflow: hidden;
         }
         
         .histogram-bars {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 100%;
             display: flex;
             align-items: flex-end;
-            padding: 0 10px;
+            height: 100%;
+            gap: 1px;
         }
         
         .histogram-bar {
             flex: 1;
             background: #cbd5e0;
-            margin: 0 1px;
-            min-height: 2px;
             transition: background 0.2s;
             cursor: pointer;
+            min-width: 1px;
         }
         
-        .histogram-bar.in-range {
+        .histogram-bar.active {
             background: #667eea;
         }
         
-        .histogram-bar:hover {
-            background: #4c51bf;
+        .histogram-bar.long-term {
+            background: #94a3b8;
+            flex: 0 0 20px;
+            margin-left: 2px;
         }
         
-        .slider-track {
-            position: relative;
-            height: 6px;
-            background: #e1e8ed;
-            border-radius: 3px;
-            margin: 1.5rem 10px 0.5rem;
+        .histogram-bar.long-term.active {
+            background: #764ba2;
         }
         
-        .slider-range {
+        .slider-handles {
             position: absolute;
-            height: 100%;
-            background: #667eea;
-            border-radius: 3px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
         
         .slider-handle {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            top: -10px;
+            width: 16px;
+            height: 140px;
             background: white;
             border: 3px solid #667eea;
-            border-radius: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            cursor: grab;
-            z-index: 10;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .slider-handle:active {
-            cursor: grabbing;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        
-        .slider-handle.dragging {
-            border-color: #4c51bf;
-            transform: translate(-50%, -50%) scale(1.2);
-        }
-        
-        .hide-expired-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            background: #f8f9fa;
             border-radius: 6px;
+            cursor: ew-resize;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
         }
         
-        .hide-expired-container input[type="checkbox"] {
-            cursor: pointer;
+        .slider-selection {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.3);
+            pointer-events: none;
         }
         
-        .hide-expired-container label {
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: #2c3e50;
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
         }
         
-        .controls {
-            background: white;
+        .error {
+            background: #fee;
+            color: #c00;
             padding: 1rem;
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 1rem;
+            border-radius: 8px;
+            border: 1px solid #fcc;
+        }
+        
+        #calendarView {
+            display: none;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        
+        .fc-event-title {
+            font-weight: 600;
+        }
+        
+        .status-message {
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 8px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
         }
     </style>
 </head>
 <body>
-    <header style="cursor: pointer;" onclick="window.location.reload()">
-        <h1>
-            🎨 Art Opportunities Explorer
-            <span class="live-badge">LIVE DATA</span>
-        </h1>
-        <p>Real-time connection to Supabase database</p>
+    <header>
+        <h1>Art Opportunities Explorer <span class="live-badge">LIVE</span></h1>
+        <p>Real-time art call opportunities from Supabase</p>
     </header>
     
-    <div class="config-panel" id="configPanel">
-        <h3>🔐 Connect to Supabase</h3>
+    <div id="configPanel" class="config-panel">
+        <h3>⚙️ Database Configuration</h3>
         <div class="config-form">
             <div class="form-group">
                 <label for="supabaseUrl">Supabase URL</label>
                 <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co">
-                <div class="help-text">Found in your Supabase project settings</div>
+                <span class="help-text">Your Supabase project URL (found in project settings)</span>
             </div>
-            
             <div class="form-group">
-                <label for="supabaseKey">Anon/Public Key</label>
-                <input type="text" id="supabaseKey" placeholder="eyJ...">
-                <div class="help-text">Use the anon key (safe for client-side, read-only access)</div>
+                <label for="supabaseKey">Supabase Anon Key</label>
+                <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                <span class="help-text">Your public anon key (safe to use in browser)</span>
             </div>
-            
-            <button class="btn btn-connect" onclick="connect()">Connect to Database</button>
+            <button class="btn" onclick="connect()">Connect to Database</button>
         </div>
-        
-        <div id="connectionStatus"></div>
     </div>
     
-    <div id="mainApp" style="display: none;">
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="search" placeholder="🔍 Search opportunities...">
+    <div id="mainContent" style="display: none;">
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Opportunities</span>
+                <span class="stat-value" id="totalCount">0</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-label">Active</span>
+                <span class="stat-value" id="activeCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Expiring Soon</span>
+                <span class="stat-value" id="expiringCount">0</span>
+            </div>
+            <button class="btn btn-refresh" onclick="fetchOpportunities()">🔄 Refresh</button>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchView('grid')">Grid View</div>
+            <div class="tab" onclick="switchView('calendar')">Calendar View</div>
+        </div>
+        
+        <div class="filters">
+            <input type="text" class="search-box" id="searchBox" placeholder="Search opportunities..." onkeyup="filterOpportunities()">
             
             <div class="multi-filter">
-                <button id="filterToggle" class="filter-select" onclick="toggleFilterDropdown()">
+                <button class="filter-btn" onclick="toggleFilterDropdown()">
                     <span id="filterLabel">All Sources</span> ▼
                 </button>
                 <div id="filterDropdown" class="filter-dropdown" style="display: none;">
@@ -595,32 +589,12 @@
                         <input type="checkbox" value="" id="allSources" checked onchange="toggleAllSources()">
                         <span>All Sources</span>
                     </label>
-                    <label class="filter-option">
-                        <input type="checkbox" value="zapplication" class="source-checkbox">
-                        <span>ZapApplication</span>
-                    </label>
-                    <label class="filter-option">
-                        <input type="checkbox" value="artwork_archive" class="source-checkbox">
-                        <span>Artwork Archive</span>
-                    </label>
-                    <label class="filter-option">
-                        <input type="checkbox" value="cafe" class="source-checkbox">
-                        <span>CaFÉ</span>
-                    </label>
-                    <label class="filter-option">
-                        <input type="checkbox" value="showsubmit" class="source-checkbox">
-                        <span>ShowSubmit</span>
-                    </label>
-                    <label class="filter-option">
-                        <input type="checkbox" value="artcall" class="source-checkbox">
-                        <span>ArtCall</span>
-                    </label>
                 </div>
             </div>
             
-            <div class="hide-expired-container">
-                <input type="checkbox" id="hideExpired" checked>
-                <label for="hideExpired">Hide expired calls</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="hideExpired" onchange="filterOpportunities()">
+                <label for="hideExpired">Hide Expired</label>
             </div>
             
             <div class="date-slider-container">
@@ -630,61 +604,49 @@
                 </div>
                 <div class="histogram-container" id="histogramContainer">
                     <div class="histogram-bars" id="histogramBars"></div>
+                    <div class="slider-handles">
+                        <div class="slider-selection" id="sliderSelection"></div>
+                        <div class="slider-handle" id="handleMin"></div>
+                        <div class="slider-handle" id="handleMax"></div>
+                    </div>
                 </div>
-                <div class="slider-track" id="sliderTrack">
-                    <div class="slider-range" id="sliderRange"></div>
-                    <div class="slider-handle" id="sliderHandleMin" data-handle="min"></div>
-                    <div class="slider-handle" id="sliderHandleMax" data-handle="max"></div>
-                </div>
-            </div>
-            
-            <div class="view-toggle">
-                <button class="toggle-btn active" onclick="showView('list')">📋 List</button>
-                <button class="toggle-btn" onclick="showView('calendar')">📅 Calendar</button>
             </div>
         </div>
         
-        <div class="stats">
-            <div class="stat-item">
-                Total: <span class="stat-value" id="totalCount">0</span>
-            </div>
-            <div class="stat-item">
-                With Deadlines: <span class="stat-value" id="deadlineCount">0</span>
-            </div>
-            <div class="stat-item">
-                With Locations: <span class="stat-value" id="locationCount">0</span>
-            </div>
-            <div class="stat-item">
-                Last Updated: <span class="stat-value" id="lastUpdated">-</span>
+        <div id="gridView" class="grid-container">
+            <div id="opportunitiesGrid" class="grid"></div>
+            <div class="pagination">
+                <button class="btn" onclick="changePage(-1)" id="prevBtn">← Previous</button>
+                <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                <button class="btn" onclick="changePage(1)" id="nextBtn">Next →</button>
             </div>
         </div>
         
-        <div class="container">
+        <div id="calendarView" class="calendar-container">
             <div id="calendar"></div>
-            <div id="list" class="grid">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading opportunities...</p>
-                </div>
-            </div>
-            <div class="pagination" id="pagination"></div>
         </div>
     </div>
+    
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script>
         let supabase = null;
         let opportunities = [];
         let filteredOpportunities = [];
-        let calendar = null;
         let currentPage = 1;
-        const itemsPerPage = 50;
+        const itemsPerPage = 30;
+        let calendar = null;
+        let currentView = 'grid';
+        
+        // Date range state
         let dateRangeMin = null;
         let dateRangeMax = null;
-        let isDragging = false;
-        let activeHandle = null;
+        let isDragging = null;
+        let dragStartX = 0;
+        let dragStartValue = 0;
         
-        // Load saved credentials
+        // Load saved config
         window.onload = () => {
             const savedUrl = localStorage.getItem('supabaseUrl');
             const savedKey = localStorage.getItem('supabaseKey');
@@ -703,69 +665,52 @@
             const key = document.getElementById('supabaseKey').value;
             
             if (!url || !key) {
-                showStatus('Please enter both URL and Key', 'error');
+                alert('Please enter both Supabase URL and API key');
                 return;
             }
             
             try {
-                // Initialize Supabase client
                 supabase = window.supabase.createClient(url, key);
                 
-                // Test connection by fetching count
-                const { count, error } = await supabase
-                    .from('opportunities')
-                    .select('*', { count: 'exact', head: true });
-                
-                if (error) throw error;
-                
-                // Save credentials
+                // Save config
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
                 
-                showStatus(`✅ Connected! Found ${count} opportunities in database`, 'success');
-                
-                // Hide config panel, show main app
+                // Hide config, show main content
                 document.getElementById('configPanel').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'block';
                 
-                // Load data
-                loadOpportunities();
+                // Fetch data
+                await fetchOpportunities();
+                
+                // Setup calendar
+                setupCalendar();
                 
             } catch (error) {
-                showStatus(`❌ Connection failed: ${error.message}`, 'error');
+                alert('Failed to connect: ' + error.message);
             }
         }
         
-        // Show status message
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.className = type;
-            statusDiv.innerHTML = message;
-        }
-        
-        // Load opportunities from Supabase
-        async function loadOpportunities() {
+        // Fetch opportunities from Supabase
+        async function fetchOpportunities() {
+            if (!supabase) return;
+            
+            showStatus('Loading opportunities...');
+            
             try {
-                console.log('Loading opportunities from Supabase...');
-                
                 // First, get the total count
-                const { count: totalCount, error: countError } = await supabase
+                const { count: totalCount } = await supabase
                     .from('opportunities')
                     .select('*', { count: 'exact', head: true });
                 
-                if (countError) {
-                    console.error('Count error:', countError);
-                    throw countError;
-                }
+                console.log(`Total opportunities in database: ${totalCount}`);
                 
-                console.log(`Total records in database: ${totalCount}`);
-                
-                // Now fetch all records in batches
-                let allData = [];
-                const batchSize = 500;
+                // Fetch all data in batches
+                const batchSize = 1000;
+                const allData = [];
                 
                 for (let offset = 0; offset < totalCount; offset += batchSize) {
-                    console.log(`Fetching records ${offset} to ${Math.min(offset + batchSize, totalCount)}...`);
+                    console.log(`Fetching batch: ${offset} to ${Math.min(offset + batchSize, totalCount)}`);
                     
                     const { data, error } = await supabase
                         .from('opportunities')
@@ -773,34 +718,28 @@
                         .order('deadline_parsed', { ascending: true, nullsFirst: false })
                         .range(offset, Math.min(offset + batchSize - 1, totalCount - 1));
                     
-                    if (error) {
-                        console.error(`Error fetching batch at offset ${offset}:`, error);
-                        throw error;
-                    }
-                    
+                    if (error) throw error;
                     if (data) {
-                        allData = allData.concat(data);
-                        console.log(`  Received ${data.length} records (total so far: ${allData.length})`);
+                        allData.push(...data);
                     }
                 }
                 
-                // Filter out expired deadlines (more than 24 hours old)
-                const now = new Date();
-                const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                console.log(`Successfully fetched ${allData.length} opportunities`);
+                
+                // Filter for active opportunities (deadline not passed)
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                yesterday.setHours(0, 0, 0, 0);
                 
                 const activeOpportunities = allData.filter(opp => {
-                    if (!opp.deadline_parsed) return true; // Keep if no deadline
-                    const deadline = new Date(opp.deadline_parsed);
-                    return deadline >= yesterday; // Keep if deadline is within last 24 hours or future
+                    if (!opp.deadline_parsed && !opp.deadline_raw) return true; // Keep if no deadline
+                    const deadline = opp.deadline_parsed ? new Date(opp.deadline_parsed) : null;
+                    return !deadline || deadline >= yesterday; // Keep if deadline is within last 24 hours or future
                 });
                 
-                console.log(`Filtered out ${allData.length - activeOpportunities.length} expired opportunities`);
+                console.log(`Active opportunities: ${activeOpportunities.length}`);
                 
-                opportunities = activeOpportunities;
-                filteredOpportunities = [...opportunities];
-                
-                // Debug: Log what we got
-                console.log(`✅ Loaded ${allData.length} total opportunities`);
+                // Log source distribution
                 const sources = {};
                 allData.forEach(o => {
                     sources[o.source_platform] = (sources[o.source_platform] || 0) + 1;
@@ -814,12 +753,11 @@
                 // Make sure we have data before rendering
                 if (opportunities.length > 0) {
                     updateStats();
-                    renderList();
-                    setupEventListeners();
-                } else {
-                    console.error('No opportunities loaded!');
-                    document.getElementById('list').innerHTML = '<div class="error">No data loaded from database</div>';
+                    setupDateRangeSlider();
+                    filterOpportunities();
                 }
+                
+                opportunities = activeOpportunities;
                 
                 // Populate source filter checkboxes with actual values
                 const uniqueSources = [...new Set(allData.map(o => o.source_platform))].sort();
@@ -834,7 +772,7 @@
                     const label = document.createElement('label');
                     label.className = 'filter-option';
                     label.innerHTML = `
-                        <input type="checkbox" value="${source}" class="source-checkbox">
+                        <input type="checkbox" value="${source}" class="source-checkbox" checked onchange="updateSourceFilter()">
                         <span>${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                     `;
                     filterDropdown.appendChild(label);
@@ -843,58 +781,58 @@
                 // Re-setup checkbox listeners
                 document.querySelectorAll('.source-checkbox').forEach(cb => {
                     cb.addEventListener('change', () => {
-                        document.getElementById('allSources').checked = false;
+                        const allCheckbox = document.getElementById('allSources');
+                        const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
+                        const checkedCount = Array.from(sourceCheckboxes).filter(c => c.checked).length;
+                        
+                        if (checkedCount === 0) {
+                            allCheckbox.checked = false;
+                            allCheckbox.indeterminate = false;
+                        } else if (checkedCount === sourceCheckboxes.length) {
+                            allCheckbox.checked = true;
+                            allCheckbox.indeterminate = false;
+                        } else {
+                            allCheckbox.checked = false;
+                            allCheckbox.indeterminate = true;
+                        }
+                        
                         updateFilterLabel();
-                        filterAndRender();
                     });
                 });
                 
-                // Update last updated time
-                if (allData.length > 0 && allData[0].scraped_at) {
-                    const scraped_dates = allData.filter(o => o.scraped_at).map(o => new Date(o.scraped_at));
-                    if (scraped_dates.length > 0) {
-                        const lastScraped = new Date(Math.max(...scraped_dates));
-                        document.getElementById('lastUpdated').textContent = lastScraped.toLocaleDateString();
-                    }
-                }
+                hideStatus();
+                
+                updateStats();
+                setupDateRangeSlider();
+                filterOpportunities();
                 
             } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('list').innerHTML = `
-                    <div class="error">Error loading data: ${error.message}</div>
-                `;
+                console.error('Error fetching opportunities:', error);
+                showStatus('Error loading opportunities: ' + error.message, true);
             }
         }
         
-        // Setup event listeners
-        function setupEventListeners() {
-            document.getElementById('search').addEventListener('input', filterAndRender);
-            document.getElementById('hideExpired').addEventListener('change', filterAndRender);
-            setupDateSlider();
-            
-            // Setup checkbox listeners
-            document.querySelectorAll('.source-checkbox').forEach(cb => {
-                cb.addEventListener('change', () => {
-                    updateFilterLabel();
-                    filterAndRender();
-                });
-            });
-            
-            // Close dropdown when clicking outside
+        // Setup event listeners to close dropdown when clicking outside
+        document.addEventListener('DOMContentLoaded', () => {
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.multi-filter')) {
                     document.getElementById('filterDropdown').style.display = 'none';
                 }
             });
-        }
+        });
         
         // Update stats
         function updateStats() {
-            document.getElementById('totalCount').textContent = filteredOpportunities.length;
-            document.getElementById('deadlineCount').textContent = 
-                filteredOpportunities.filter(o => o.deadline_raw).length;
-            document.getElementById('locationCount').textContent = 
-                filteredOpportunities.filter(o => o.location_raw).length;
+            document.getElementById('totalCount').textContent = opportunities.length;
+            
+            const activeCount = opportunities.filter(o => {
+                if (!o.deadline_parsed) return true;
+                return new Date(o.deadline_parsed) >= new Date();
+            }).length;
+            document.getElementById('activeCount').textContent = activeCount;
+            
+            const expiringCount = opportunities.filter(o => isDeadlineSoon(o.deadline_parsed)).length;
+            document.getElementById('expiringCount').textContent = expiringCount;
         }
         
         // Toggle filter dropdown
@@ -905,50 +843,47 @@
         
         // Toggle all sources
         function toggleAllSources() {
-            const allChecked = document.getElementById('allSources').checked;
-            document.querySelectorAll('.source-checkbox').forEach(cb => {
-                cb.checked = false;
-                cb.disabled = allChecked;
+            const allCheckbox = document.getElementById('allSources');
+            const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
+            
+            sourceCheckboxes.forEach(cb => {
+                cb.checked = allCheckbox.checked;
             });
+            
             updateFilterLabel();
-            filterAndRender();
+            filterOpportunities();
+        }
+        
+        // Update source filter
+        function updateSourceFilter() {
+            updateFilterLabel();
+            filterOpportunities();
         }
         
         // Update filter label
         function updateFilterLabel() {
-            const allChecked = document.getElementById('allSources').checked;
-            if (allChecked) {
-                document.getElementById('filterLabel').textContent = 'All Sources';
-                return;
-            }
+            const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
+            const checkedSources = Array.from(sourceCheckboxes).filter(cb => cb.checked);
+            const label = document.getElementById('filterLabel');
             
-            const checked = Array.from(document.querySelectorAll('.source-checkbox:checked'));
-            if (checked.length === 0) {
-                document.getElementById('filterLabel').textContent = 'Select Sources';
-                document.getElementById('allSources').checked = true;
-                toggleAllSources();
-            } else if (checked.length === 1) {
-                const label = checked[0].parentElement.querySelector('span').textContent;
-                document.getElementById('filterLabel').textContent = label;
+            if (checkedSources.length === 0) {
+                label.textContent = 'No sources';
+            } else if (checkedSources.length === sourceCheckboxes.length) {
+                label.textContent = 'All Sources';
+            } else if (checkedSources.length === 1) {
+                label.textContent = checkedSources[0].value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             } else {
-                document.getElementById('filterLabel').textContent = `${checked.length} Sources`;
+                label.textContent = `${checkedSources.length} sources`;
             }
         }
         
-        // Filter and render
-        function filterAndRender() {
-            const search = document.getElementById('search').value.toLowerCase();
+        // Filter opportunities
+        function filterOpportunities() {
+            const search = document.getElementById('searchBox').value.toLowerCase();
             const hideExpired = document.getElementById('hideExpired').checked;
-            
-            // Get selected sources
-            const allChecked = document.getElementById('allSources').checked;
-            let selectedSources = [];
-            if (!allChecked) {
-                selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked'))
-                    .map(cb => cb.value);
-            }
-            
-            const now = new Date();
+            const selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked')).map(cb => cb.value);
+            const allCheckbox = document.getElementById('allSources');
+            const allChecked = allCheckbox.checked;
             
             filteredOpportunities = opportunities.filter(o => {
                 // Filter by source
@@ -957,16 +892,16 @@
                 }
                 
                 // Filter by deadline range
-                if (o.deadline_parsed) {
-                    const deadline = new Date(o.deadline_parsed);
+                if (o.deadline_parsed || o.deadline_raw) {
+                    const deadline = o.deadline_parsed ? new Date(o.deadline_parsed) : null;
                     
                     // Hide expired if checkbox is checked
-                    if (hideExpired && deadline < now) {
+                    if (hideExpired && deadline && deadline < new Date()) {
                         return false;
                     }
                     
                     // Filter by date range slider
-                    if (dateRangeMin && dateRangeMax) {
+                    if (dateRangeMin && dateRangeMax && deadline) {
                         if (deadline < dateRangeMin || deadline > dateRangeMax) {
                             return false;
                         }
@@ -975,332 +910,55 @@
                 
                 // Filter by search
                 if (search) {
-                    const text = `${o.title} ${o.organization} ${o.location_raw} ${o.location_city} ${o.location_state} ${o.location_country} ${o.description}`.toLowerCase();
+                    // Include enriched description in search
+                    let searchDescription = o.description;
+                    if (o.extras) {
+                        let extras = o.extras;
+                        if (typeof extras === 'string') {
+                            try { extras = JSON.parse(extras); } catch(e) {}
+                        }
+                        if (extras && extras.enriched_description) {
+                            searchDescription = extras.enriched_description;
+                        }
+                    }
+                    const text = `${o.title} ${o.organization} ${o.location_raw} ${o.location_city} ${o.location_state} ${o.location_country} ${searchDescription}`.toLowerCase();
                     if (!text.includes(search)) return false;
                 }
                 return true;
             });
             
-            currentPage = 1;
-            updateStats();
-            sortAndRender();
-        }
-        
-        // Sort and render
-        function sortAndRender() {
             // Always sort by deadline (nearest to furthest)
             filteredOpportunities.sort((a, b) => {
-                if (!a.deadline_parsed) return 1;
-                if (!b.deadline_parsed) return -1;
-                return new Date(a.deadline_parsed) - new Date(b.deadline_parsed);
-            });
-            
-            renderList();
-        }
-        
-        // Setup date range slider
-        function setupDateSlider() {
-            const sliderTrack = document.getElementById('sliderTrack');
-            const handleMin = document.getElementById('sliderHandleMin');
-            const handleMax = document.getElementById('sliderHandleMax');
-            
-            // Initialize date range from opportunities
-            updateDateRange();
-            
-            // Build histogram
-            buildHistogram();
-            
-            // Handle dragging
-            [handleMin, handleMax].forEach(handle => {
-                handle.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    activeHandle = handle;
-                    handle.classList.add('dragging');
-                    e.preventDefault();
-                });
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging || !activeHandle) return;
+                const dateA = a.deadline_parsed ? new Date(a.deadline_parsed) : null;
+                const dateB = b.deadline_parsed ? new Date(b.deadline_parsed) : null;
                 
-                const rect = sliderTrack.getBoundingClientRect();
-                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1;
+                if (!dateB) return -1;
                 
-                // Use the new mapping functions
-                const newDate = sliderPercentToDate(percent);
-                
-                if (activeHandle.dataset.handle === 'min') {
-                    if (newDate < dateRangeMax) {
-                        dateRangeMin = newDate;
-                        updateSliderPosition();
-                        filterAndRender();
-                    }
-                } else {
-                    if (newDate > dateRangeMin) {
-                        dateRangeMax = newDate;
-                        updateSliderPosition();
-                        filterAndRender();
-                    }
-                }
+                return dateA - dateB;
             });
             
-            document.addEventListener('mouseup', () => {
-                if (activeHandle) {
-                    activeHandle.classList.remove('dragging');
-                }
-                isDragging = false;
-                activeHandle = null;
-            });
-        }
-        
-        // Get min/max dates from opportunities
-        function getMinDate() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return today;
-        }
-        
-        function getMaxDate() {
-            const dates = opportunities
-                .filter(o => o.deadline_parsed)
-                .map(o => new Date(o.deadline_parsed));
-            if (dates.length === 0) {
-                const future = new Date();
-                future.setFullYear(future.getFullYear() + 1);
-                return future;
-            }
-            return new Date(Math.max(...dates));
-        }
-        
-        // Get the cutoff date for "long term" (8 weeks from today)
-        function getLongTermCutoff() {
-            const today = new Date();
-            const cutoff = new Date(today);
-            cutoff.setDate(cutoff.getDate() + 56); // 8 weeks = 56 days
-            cutoff.setHours(0, 0, 0, 0);
-            return cutoff;
-        }
-        
-        // Map a date to slider position (compress dates after 8 weeks)
-        function dateToSliderPercent(date) {
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const cutoff = getLongTermCutoff();
+            currentPage = 1;
+            renderOpportunities();
             
-            // If date is before cutoff, use first 85% of slider
-            if (date <= cutoff) {
-                const range = cutoff - minDate;
-                const percent = (date - minDate) / range * 0.85; // Use 85% of slider
-                return Math.max(0, Math.min(0.85, percent));
-            } else {
-                // After cutoff, compress into last 15% of slider
-                const range = maxDate - cutoff;
-                const percent = 0.85 + (date - cutoff) / range * 0.15; // Use last 15%
-                return Math.max(0.85, Math.min(1, percent));
+            // Update calendar if it's visible
+            if (currentView === 'calendar' && calendar) {
+                updateCalendarEvents();
             }
         }
         
-        // Map slider position to date (decompress for dates after 8 weeks)
-        function sliderPercentToDate(percent) {
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const cutoff = getLongTermCutoff();
-            
-            if (percent <= 0.85) {
-                // First 85% maps to dates before cutoff
-                const range = cutoff - minDate;
-                return new Date(minDate.getTime() + range * (percent / 0.85));
-            } else {
-                // Last 15% maps to dates after cutoff
-                const range = maxDate - cutoff;
-                return new Date(cutoff.getTime() + range * ((percent - 0.85) / 0.15));
-            }
-        }
-        
-        // Update date range
-        function updateDateRange() {
-            dateRangeMin = getMinDate();
-            dateRangeMax = getMaxDate();
-            updateSliderPosition();
-        }
-        
-        // Update slider visual position
-        function updateSliderPosition() {
-            // Use the mapping functions for accurate positioning
-            const minPercent = dateToSliderPercent(dateRangeMin) * 100;
-            const maxPercent = dateToSliderPercent(dateRangeMax) * 100;
-            
-            document.getElementById('sliderHandleMin').style.left = minPercent + '%';
-            document.getElementById('sliderHandleMax').style.left = maxPercent + '%';
-            
-            const sliderRange = document.getElementById('sliderRange');
-            sliderRange.style.left = minPercent + '%';
-            sliderRange.style.width = (maxPercent - minPercent) + '%';
-            
-            // Update display text
-            const formatDate = (date) => {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const cutoff = getLongTermCutoff();
-                
-                // Add "Long term" label if past cutoff
-                if (date > cutoff) {
-                    return `After ${months[cutoff.getMonth()]} ${cutoff.getDate()} (Long term)`;
-                }
-                return `${months[date.getMonth()]} ${date.getDate()}`;
-            };
-            
-            document.getElementById('dateRangeDisplay').textContent = 
-                `${formatDate(dateRangeMin)} - ${formatDate(dateRangeMax)}`;
-            
-            // Update histogram
-            updateHistogramHighlight();
-        }
-        
-        // Build histogram
-        function buildHistogram() {
-            const container = document.getElementById('histogramBars');
-            container.innerHTML = '';
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            // Focus on next 8 weeks (56 days)
-            const eightWeeksOut = new Date(today);
-            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56);
-            
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            
-            // Count deadlines
-            const dailyCounts = {}; // Daily counts for next 8 weeks
-            let longTermCount = 0; // Everything after 8 weeks
-            
-            opportunities.forEach(o => {
-                if (o.deadline_parsed) {
-                    const date = new Date(o.deadline_parsed);
-                    if (date <= eightWeeksOut) {
-                        const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
-                        dailyCounts[dayIndex] = (dailyCounts[dayIndex] || 0) + 1;
-                    } else {
-                        longTermCount++;
-                    }
-                }
-            });
-            
-            // Create bars - 56 bars for next 8 weeks (one per day)
-            const numDayBars = 56;
-            const daysToShow = Math.min(56, Math.ceil((eightWeeksOut - minDate) / (1000 * 60 * 60 * 24)));
-            
-            // Calculate max count ONLY from the 8-week period (not long term)
-            const maxCount = Math.max(...Object.values(dailyCounts), 1);
-            
-            // Daily bars for next 8 weeks (85% of slider width)
-            for (let i = 0; i < numDayBars; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.width = `${85 / numDayBars}%`; // Take up 85% total
-                
-                const count = dailyCounts[i] || 0;
-                const height = (count / maxCount) * 100;
-                bar.style.height = height + '%';
-                bar.dataset.index = i;
-                bar.dataset.count = count;
-                
-                // Add week separators
-                if (i % 7 === 0 && i > 0) {
-                    bar.style.borderLeft = '1px solid #e5e7eb';
-                }
-                
-                container.appendChild(bar);
-            }
-            
-            // Long term section (last 15%) - single consolidated bar
-            if (longTermCount > 0) {
-                // Create a single wide bar for all long-term dates
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.width = '15%'; // Make it take up the last 15% width
-                bar.style.flex = 'none'; // Prevent flexbox from resizing it
-                
-                // Use a fixed moderate height (not scaled to Y-axis)
-                const height = Math.min(50, longTermCount * 2); // Cap at 50% height
-                bar.style.height = height + '%';
-                bar.style.borderLeft = '3px solid #3b82f6';
-                bar.style.backgroundColor = '#dbeafe'; // Light blue to distinguish
-                bar.style.opacity = '0.7'; // Slightly transparent to show it's different
-                bar.dataset.index = numDayBars;
-                bar.dataset.count = longTermCount;
-                bar.title = `${longTermCount} opportunities after ${eightWeeksOut.toLocaleDateString()}`;
-                
-                container.appendChild(bar);
-            }
-            
-            updateHistogramHighlight();
-        }
-        
-        // Update histogram highlighting
-        function updateHistogramHighlight() {
-            const bars = document.querySelectorAll('.histogram-bar');
-            const minDate = getMinDate();
-            const eightWeeksOut = new Date();
-            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56);
-            
-            bars.forEach((bar, i) => {
-                // First 56 bars are daily bars for the next 8 weeks
-                if (i < 56) {
-                    const barDate = new Date(minDate);
-                    barDate.setDate(barDate.getDate() + i);
-                    
-                    if (barDate >= dateRangeMin && barDate <= dateRangeMax) {
-                        bar.classList.add('in-range');
-                    } else {
-                        bar.classList.remove('in-range');
-                    }
-                } else {
-                    // Last bar is the long-term section
-                    // Highlight if the max range extends beyond 8 weeks
-                    if (dateRangeMax > eightWeeksOut) {
-                        bar.classList.add('in-range');
-                    } else {
-                        bar.classList.remove('in-range');
-                    }
-                }
-            });
-        }
-        
-        // Render list
-        function renderList() {
+        // Render opportunities grid
+        function renderOpportunities() {
+            const grid = document.getElementById('opportunitiesGrid');
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const pageItems = filteredOpportunities.slice(start, end);
+            const pageOpportunities = filteredOpportunities.slice(start, end);
             
-            const list = document.getElementById('list');
-            
-            // Debug log
-            console.log('renderList called:', {
-                totalOpportunities: opportunities.length,
-                filteredOpportunities: filteredOpportunities.length,
-                currentPage,
-                start,
-                end,
-                pageItems: pageItems.length
-            });
-            
-            if (pageItems.length === 0) {
-                if (opportunities.length === 0) {
-                    list.innerHTML = '<div class="loading">Loading opportunities...</div>';
-                } else if (filteredOpportunities.length === 0) {
-                    list.innerHTML = '<div class="loading">No opportunities match your filters</div>';
-                } else {
-                    list.innerHTML = '<div class="loading">No opportunities found</div>';
-                }
-                return;
-            }
-            
-            list.innerHTML = pageItems.map(o => `
+            grid.innerHTML = pageOpportunities.map(o => {
+                return `
                 <div class="card" onclick="window.open('${o.url}', '_blank')">
                     <div class="card-title">${o.title || 'Untitled'}</div>
-                    <span class="badge badge-${o.source_platform}">${o.source_platform}</span>
                     
                     <div class="card-meta">
                         ${o.deadline_raw || o.deadline_parsed ? `
@@ -1311,248 +969,285 @@
                         ${(() => {
                             // Smart location display - avoid duplicates
                             let locationHtml = '';
-                            const hasCity = o.location_city && o.location_state;
-                            const cityState = hasCity ? `${o.location_city}, ${o.location_state}` : '';
+                            const hasStructured = o.location_city || o.location_state || o.location_country;
                             
-                            // If city/state exists and is different from raw, show city/state
-                            if (hasCity && cityState !== o.location_raw) {
-                                locationHtml = `<div class="meta-item">📍 ${cityState}</div>`;
+                            if (hasStructured) {
+                                const parts = [];
+                                if (o.location_city) parts.push(o.location_city);
+                                if (o.location_state) parts.push(o.location_state);
+                                if (o.location_country && o.location_country !== 'United States') {
+                                    parts.push(o.location_country);
+                                }
+                                
+                                const structured = parts.join(', ');
+                                
+                                // Check if raw location adds any new information
+                                if (o.location_raw) {
+                                    const rawLower = o.location_raw.toLowerCase();
+                                    const structuredLower = structured.toLowerCase();
+                                    
+                                    // If raw contains structured, just use structured
+                                    if (rawLower.includes(structuredLower) || structuredLower.includes(rawLower)) {
+                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                    }
+                                    // If raw is "Online" or similar, show both
+                                    else if (rawLower.includes('online') || rawLower.includes('virtual') || rawLower.includes('zoom')) {
+                                        locationHtml = `<div class="meta-item">📍 ${o.location_raw} / ${structured}</div>`;
+                                    }
+                                    // Otherwise show structured
+                                    else {
+                                        locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                    }
+                                } else {
+                                    locationHtml = `<div class="meta-item">📍 ${structured}</div>`;
+                                }
                             } else if (o.location_raw) {
-                                // Otherwise just show raw location
                                 locationHtml = `<div class="meta-item">📍 ${o.location_raw}</div>`;
-                            }
-                            
-                            // Add country if not USA
-                            if (o.location_country && o.location_country !== 'USA') {
-                                locationHtml += `<div class="meta-item" style="font-size: 0.85rem; color: #95a5a6;">🌍 ${o.location_country}</div>`;
                             }
                             
                             return locationHtml;
                         })()}
-                        ${o.fee_raw ? `<div class="meta-item">💰 ${o.fee_raw}</div>` : ''}
-                        ${(() => {
-                            // Parse extras for additional fees (Zapplication)
-                            let extras = o.extras;
-                            if (typeof extras === 'string') {
-                                try { extras = JSON.parse(extras); } catch(e) { extras = {}; }
-                            }
-                            const appFee = extras?.application_fee;
-                            const boothFee = extras?.booth_fee;
-                            const eventDates = extras?.event_dates;
-                            
-                            let html = '';
-                            if (appFee && !o.fee_raw?.includes(appFee)) {
-                                html += `<div class="meta-item" style="font-size: 0.85rem;">💵 App: ${appFee}</div>`;
-                            }
-                            if (boothFee) {
-                                html += `<div class="meta-item" style="font-size: 0.85rem;">🏪 Booth: ${boothFee}</div>`;
-                            }
-                            if (eventDates) {
-                                html += `<div class="meta-item" style="font-size: 0.85rem;">📆 ${eventDates}</div>`;
-                            }
-                            return html;
-                        })()}
-                        ${o.event_type ? `<div class="meta-item">🎨 ${o.event_type}</div>` : ''}
-                        ${o.eligibility ? `<div class="meta-item" style="font-size: 0.85rem; color: #7f8c8d;">👥 ${o.eligibility}</div>` : ''}
+                        ${o.fee_raw ? `
+                            <div class="meta-item">💰 ${o.fee_raw}</div>
+                        ` : ''}
                     </div>
                     
                     ${o.organization ? `<p style="margin-top: 0.5rem; color: #7f8c8d;">${o.organization}</p>` : ''}
                     
-                    ${o.description ? `
-                        <div class="description-container">
-                            <p class="description-preview" style="margin: 0.75rem 0 0 0; color: #5f6c7d; font-size: 0.9rem; line-height: 1.4;">
-                                ${o.description}
-                            </p>
-                            ${o.description.length > 200 ? `
-                                <div class="description-full" style="display: none;">
-                                    <p style="margin: 0; color: #2c3e50; font-size: 0.9rem; line-height: 1.5;">
-                                        ${o.description}
+                    <div class="description-container" style="margin: 0.75rem 0 0 0;">
+                        ${(() => {
+                            // Show artist summary FIRST if available
+                            let summary = '';
+                            if (o.extras && typeof o.extras === 'object') {
+                                summary = o.extras.artist_summary || o.extras.summary;
+                            } else if (o.extras && typeof o.extras === 'string') {
+                                try {
+                                    const extras = JSON.parse(o.extras);
+                                    summary = extras.artist_summary || extras.summary;
+                                } catch(e) {
+                                    // Ignore
+                                }
+                            }
+                            
+                            if (summary && summary !== o.description) {
+                                return `<div style="background: #f8f5ff; border-left: 4px solid #8b5cf6; padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 4px;">
+                                    <p style="color: #6b46c1; font-size: 0.9rem; line-height: 1.5; margin: 0; font-weight: 500;">
+                                        <strong style="color: #8b5cf6;">🎨 Artist Focus:</strong><br>
+                                        ${summary}
                                     </p>
-                                </div>
-                                <button class="read-more-btn" onclick="event.stopPropagation(); toggleDescription(this);" 
-                                        style="margin-top: 0.5rem; padding: 0.25rem 0.75rem; background: #667eea; color: white; 
-                                               border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; align-self: flex-start;">
-                                    Read More
-                                </button>
-                            ` : ''}
-                        </div>
-                    ` : ''}
+                                </div>`;
+                            }
+                            return '';
+                        })()}
+                        
+                        <p style="color: #5f6c7d; font-size: 0.9rem; line-height: 1.4; margin: 0;">
+                            ${(() => {
+                                // Show description AFTER summary
+                                let description = '';
+                                if (o.extras && typeof o.extras === 'object') {
+                                    description = o.extras.enriched_description || o.description;
+                                } else if (o.extras && typeof o.extras === 'string') {
+                                    try {
+                                        const extras = JSON.parse(o.extras);
+                                        description = extras.enriched_description || o.description;
+                                    } catch(e) {
+                                        description = o.description;
+                                    }
+                                } else {
+                                    description = o.description;
+                                }
+                                
+                                if (description) {
+                                    const truncated = description.length > 300 ? description.substring(0, 300) + '...' : description;
+                                    const needsReadMore = description.length > 300 && o.url;
+                                    return truncated + (needsReadMore ? ` <a href="${o.url}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">read more →</a>` : '');
+                                } else {
+                                    return '<i style="color: #bbb;">No description available</i>';
+                                }
+                            })()}
+                        </p>
+                    </div>
+                    
+                    <span class="badge badge-${o.source_platform}" style="position: absolute; bottom: 0.75rem; right: 0.75rem; font-size: 0.65rem; padding: 0.15rem 0.4rem; opacity: 0.6;">${o.source_platform}</span>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
-            renderPagination();
-        }
-        
-        // Render pagination
-        function renderPagination() {
+            // Update pagination
             const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
-            const pagination = document.getElementById('pagination');
-            
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            
-            html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" 
-                     ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
-            
-            for (let i = 1; i <= Math.min(totalPages, 10); i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                         onclick="changePage(${i})">${i}</button>`;
-            }
-            
-            if (totalPages > 10) {
-                html += `<span style="padding: 0.5rem;">...</span>`;
-                html += `<button class="page-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
-            }
-            
-            html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" 
-                     ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
-            
-            pagination.innerHTML = html;
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
         }
         
         // Change page
-        function changePage(page) {
+        function changePage(direction) {
             const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
-            if (page < 1 || page > totalPages) return;
-            
-            currentPage = page;
-            renderList();
+            currentPage = Math.max(1, Math.min(currentPage + direction, totalPages));
+            renderOpportunities();
             window.scrollTo(0, 0);
         }
         
-        // Check if deadline is soon
-        function isDeadlineSoon(deadline) {
-            if (!deadline) return false;
-            const date = new Date(deadline);
-            const days = (date - new Date()) / (1000 * 60 * 60 * 24);
-            return days <= 7 && days >= 0;
+        // Check if deadline is soon (within 7 days)
+        function isDeadlineSoon(deadlineParsed) {
+            if (!deadlineParsed) return false;
+            const deadline = new Date(deadlineParsed);
+            const now = new Date();
+            const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+            return daysUntil <= 7 && daysUntil >= 0;
         }
         
         // Format date nicely with days remaining
         function formatDeadline(deadlineRaw, deadlineParsed) {
-            if (!deadlineRaw) return '';
+            // Try parsed date first, then raw
+            if (!deadlineParsed && !deadlineRaw) return 'No deadline';
             
             // If we have a parsed date, format it nicely
             if (deadlineParsed) {
                 const date = new Date(deadlineParsed);
                 const now = new Date();
-                const daysRemaining = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+                const daysUntil = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
                 
-                // Format date as "Aug. 31, 2025"
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const month = months[date.getMonth()];
-                const day = date.getDate();
-                const year = date.getFullYear();
+                const formatted = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
                 
-                let formatted = `${month}. ${day}, ${year}`;
-                
-                // Add days remaining if in the future
-                if (daysRemaining >= 0) {
-                    if (daysRemaining === 0) {
-                        formatted += ' (Today!)';
-                    } else if (daysRemaining === 1) {
-                        formatted += ' (1 day)';
-                    } else if (daysRemaining <= 30) {
-                        formatted += ` (${daysRemaining} days)`;
-                    }
+                if (daysUntil < 0) {
+                    return `${formatted} (Expired)`;
+                } else if (daysUntil === 0) {
+                    return `${formatted} (Today!)`;
+                } else if (daysUntil === 1) {
+                    return `${formatted} (Tomorrow)`;
+                } else if (daysUntil <= 7) {
+                    return `${formatted} (${daysUntil} days)`;
                 } else {
-                    formatted += ' (Expired)';
+                    return formatted;
                 }
-                
-                return formatted;
             }
             
-            // Fall back to raw deadline if no parsed date
+            // Fallback to raw text
             return deadlineRaw;
         }
         
-        // Show view
-        function showView(view) {
-            document.querySelectorAll('.toggle-btn').forEach(btn => {
-                btn.classList.remove('active');
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+            
+            // Update tab states
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            if (view === 'calendar') {
-                document.getElementById('calendar').style.display = 'block';
-                document.getElementById('list').style.display = 'none';
-                document.getElementById('pagination').style.display = 'none';
-                if (!calendar) setupCalendar();
-                setTimeout(() => {
-                    calendar.refetchEvents();
-                }, 100);
+            // Show/hide views
+            if (view === 'grid') {
+                document.getElementById('gridView').style.display = 'block';
+                document.getElementById('calendarView').style.display = 'none';
             } else {
-                document.getElementById('calendar').style.display = 'none';
-                document.getElementById('list').style.display = 'grid';
-                document.getElementById('pagination').style.display = 'flex';
+                document.getElementById('gridView').style.display = 'none';
+                document.getElementById('calendarView').style.display = 'block';
+                
+                if (!calendar) {
+                    setupCalendar();
+                } else {
+                    calendar.render();
+                    updateCalendarEvents();
+                }
             }
         }
         
         // Setup calendar
         function setupCalendar() {
             const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,listWeek'
+                    right: 'dayGridMonth,dayGridWeek'
                 },
-                events: function(info, successCallback, failureCallback) {
-                    // Convert opportunities to calendar events
-                    const events = filteredOpportunities
-                        .filter(o => o.deadline_parsed)
-                        .map(o => ({
-                            title: o.title,
-                            start: o.deadline_parsed,
-                            url: o.url,
-                            backgroundColor: getSourceColor(o.source_platform),
-                            borderColor: getSourceColor(o.source_platform),
-                            extendedProps: {
-                                organization: o.organization,
-                                source: o.source_platform,
-                                location: o.location_city && o.location_state ? 
-                                    `${o.location_city}, ${o.location_state}` : 
-                                    o.location_raw
-                            }
-                        }));
-                    successCallback(events);
-                },
+                events: [],
                 eventClick: function(info) {
+                    window.open(info.event.url, '_blank');
                     info.jsEvent.preventDefault();
-                    if (info.event.url) {
-                        window.open(info.event.url, '_blank');
-                    }
                 },
-                eventMouseEnter: function(info) {
-                    // Show tooltip with details
-                    const props = info.event.extendedProps;
-                    let tooltip = `<div style="background: white; border: 1px solid #ccc; padding: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <b>${info.event.title}</b><br>
-                        ${props.organization || ''}<br>
-                        ${props.location || ''}<br>
-                        <small>Source: ${props.source}</small>
-                    </div>`;
-                    // You could implement a proper tooltip here
+                eventDidMount: function(info) {
+                    // Add tooltip
+                    const org = info.event.extendedProps.organization;
+                    const location = info.event.extendedProps.location;
+                    const source = info.event.extendedProps.source;
+                    
+                    let tooltip = info.event.title;
+                    if (org) tooltip += `\n${org}`;
+                    if (location) tooltip += `\n📍 ${location}`;
+                    if (source) tooltip += `\n[${source}]`;
+                    
+                    info.el.setAttribute('title', tooltip);
                 }
             });
-            calendar.render();
+            
+            if (currentView === 'calendar') {
+                calendar.render();
+                updateCalendarEvents();
+            }
         }
         
-        // Get source color for calendar
+        // Update calendar events
+        function updateCalendarEvents() {
+            if (!calendar) return;
+            
+            // Convert opportunities to calendar events
+            const events = filteredOpportunities
+                .filter(o => o.deadline_parsed)
+                .map(o => ({
+                    title: o.title,
+                    start: o.deadline_parsed,
+                    url: o.url,
+                    backgroundColor: getSourceColor(o.source_platform),
+                    borderColor: getSourceColor(o.source_platform),
+                    extendedProps: {
+                        organization: o.organization,
+                        source: o.source_platform,
+                        location: o.location_city && o.location_state ? 
+                            `${o.location_city}, ${o.location_state}` : 
+                            o.location_raw
+                    }
+                }));
+            
+            calendar.removeAllEvents();
+            calendar.addEventSource(events);
+        }
+        
+        // Get source color
         function getSourceColor(source) {
             const colors = {
-                'zapplication': '#ff6b6b',
-                'artwork_archive': '#4ecdc4',
-                'cafe': '#ffe66d',
-                'showsubmit': '#74b9ff',
-                'artcall': '#a29bfe'
+                'cafe': '#1976d2',
+                'zapplication': '#7b1fa2',
+                'artcall': '#388e3c',
+                'artwork_archive': '#f57c00',
+                'showsubmit': '#c2185b'
             };
-            return colors[source] || '#95a5a6';
+            return colors[source] || '#666';
+        }
+        
+        // Show status message
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            statusEl.style.background = isError ? '#fee' : '#f0f9ff';
+            statusEl.style.color = isError ? '#c00' : '#0369a1';
+            statusEl.style.borderColor = isError ? '#fcc' : '#bae6fd';
+        }
+        
+        // Hide status message
+        function hideStatus() {
+            document.getElementById('statusMessage').style.display = 'none';
         }
         
         // Toggle description
@@ -1565,13 +1260,228 @@
                 preview.style.display = 'none';
                 full.style.display = 'block';
                 button.textContent = 'Read Less';
-                button.style.background = '#5a67d8';
             } else {
-                preview.style.display = 'block';
+                preview.style.display = '-webkit-box';
                 full.style.display = 'none';
                 button.textContent = 'Read More';
-                button.style.background = '#667eea';
             }
+        }
+        
+        // Date Range Slider Functions
+        function setupDateRangeSlider() {
+            const handleMin = document.getElementById('handleMin');
+            const handleMax = document.getElementById('handleMax');
+            const sliderContainer = document.getElementById('histogramContainer');
+            
+            console.log('Setting up slider:', { handleMin, handleMax, sliderContainer });
+            
+            if (!handleMin || !handleMax || !sliderContainer) {
+                console.error('Slider elements not found!');
+                return;
+            }
+            
+            // Initialize date range
+            dateRangeMin = getMinDate();
+            dateRangeMax = getMaxDate();
+            
+            console.log('Date range:', { 
+                min: dateRangeMin, 
+                max: dateRangeMax,
+                opportunities: opportunities.length 
+            });
+            
+            // Build histogram
+            buildHistogram();
+            
+            // Setup drag handlers
+            handleMin.addEventListener('mousedown', (e) => startDrag(e, 'min'));
+            handleMax.addEventListener('mousedown', (e) => startDrag(e, 'max'));
+            
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            // Touch support
+            handleMin.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'min'));
+            handleMax.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'max'));
+            
+            document.addEventListener('touchmove', (e) => handleDrag(e.touches[0]));
+            document.addEventListener('touchend', stopDrag);
+            
+            updateSliderPositions();
+        }
+        
+        function getMinDate() {
+            return new Date();
+        }
+        
+        function getMaxDate() {
+            const dates = opportunities
+                .filter(o => o.deadline_parsed || o.deadline_raw)
+                .map(o => o.deadline_parsed ? new Date(o.deadline_parsed) : null)
+                .filter(d => d);
+            
+            if (dates.length === 0) {
+                const future = new Date();
+                future.setMonth(future.getMonth() + 12);
+                return future;
+            }
+            
+            return new Date(Math.max(...dates));
+        }
+        
+        function getLongTermCutoff() {
+            const cutoff = new Date();
+            cutoff.setMonth(cutoff.getMonth() + 2); // 2 months from now
+            return cutoff;
+        }
+        
+        function buildHistogram() {
+            const container = document.getElementById('histogramBars');
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const longTermCutoff = getLongTermCutoff();
+            const eightWeeksOut = new Date();
+            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56); // 8 weeks
+            
+            // Use daily bins for next 8 weeks
+            const daysInRange = Math.min(56, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
+            const bins = new Array(daysInRange).fill(0);
+            let longTermCount = 0;
+            
+            opportunities.forEach(o => {
+                if (o.deadline_parsed || o.deadline_raw) {
+                    const date = o.deadline_parsed ? new Date(o.deadline_parsed) : null;
+                    if (date) {
+                        if (date <= eightWeeksOut) {
+                            const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
+                            if (dayIndex >= 0 && dayIndex < daysInRange) {
+                                bins[dayIndex]++;
+                            }
+                        } else {
+                            longTermCount++;
+                        }
+                    }
+                }
+            });
+            
+            const maxCount = Math.max(...bins, longTermCount);
+            
+            // Clear and rebuild histogram
+            container.innerHTML = '';
+            
+            // Add daily bins for next 8 weeks
+            bins.forEach((count, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'histogram-bar';
+                bar.style.height = maxCount > 0 ? `${(count / maxCount) * 100}%` : '0%';
+                bar.dataset.date = new Date(minDate.getTime() + i * 24 * 60 * 60 * 1000).toISOString();
+                bar.dataset.count = count;
+                container.appendChild(bar);
+            });
+            
+            // Add consolidated long-term bar
+            if (longTermCount > 0) {
+                const longTermBar = document.createElement('div');
+                longTermBar.className = 'histogram-bar long-term';
+                longTermBar.style.height = `${(longTermCount / maxCount) * 100}%`;
+                longTermBar.dataset.date = 'long-term';
+                longTermBar.dataset.count = longTermCount;
+                container.appendChild(longTermBar);
+            }
+        }
+        
+        function startDrag(e, handle) {
+            isDragging = handle;
+            dragStartX = e.clientX;
+            const rect = document.getElementById('histogramContainer').getBoundingClientRect();
+            
+            if (handle === 'min') {
+                dragStartValue = (dateRangeMin - getMinDate()) / (getMaxDate() - getMinDate());
+            } else {
+                dragStartValue = (dateRangeMax - getMinDate()) / (getMaxDate() - getMinDate());
+            }
+            
+            e.preventDefault();
+        }
+        
+        function handleDrag(e) {
+            if (!isDragging) return;
+            
+            const rect = document.getElementById('histogramContainer').getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const percentage = Math.max(0, Math.min(1, x / rect.width));
+            
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            const newDate = new Date(minDate.getTime() + percentage * (maxDate - minDate));
+            
+            if (isDragging === 'min') {
+                dateRangeMin = new Date(Math.min(newDate, dateRangeMax));
+            } else {
+                dateRangeMax = new Date(Math.max(newDate, dateRangeMin));
+            }
+            
+            updateSliderPositions();
+            updateHistogramHighlight();
+            filterOpportunities();
+        }
+        
+        function stopDrag() {
+            isDragging = null;
+        }
+        
+        function updateSliderPositions() {
+            const handleMin = document.getElementById('handleMin');
+            const handleMax = document.getElementById('handleMax');
+            const selection = document.getElementById('sliderSelection');
+            const container = document.getElementById('histogramContainer');
+            
+            if (!handleMin || !handleMax || !selection || !container) return;
+            
+            const minDate = getMinDate();
+            const maxDate = getMaxDate();
+            
+            const minPercent = ((dateRangeMin - minDate) / (maxDate - minDate)) * 100;
+            const maxPercent = ((dateRangeMax - minDate) / (maxDate - minDate)) * 100;
+            
+            handleMin.style.left = `calc(${minPercent}% - 8px)`;
+            handleMax.style.left = `calc(${maxPercent}% - 8px)`;
+            
+            selection.style.left = `${minPercent}%`;
+            selection.style.width = `${maxPercent - minPercent}%`;
+            
+            // Update display text
+            const formatDate = (date) => {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const cutoff = getLongTermCutoff();
+                
+                if (date >= cutoff) {
+                    return 'Long term';
+                }
+                
+                return `${months[date.getMonth()]} ${date.getDate()}`;
+            };
+            
+            document.getElementById('dateRangeDisplay').textContent = 
+                `${formatDate(dateRangeMin)} - ${formatDate(dateRangeMax)}`;
+            
+            // Update histogram
+            updateHistogramHighlight();
+        }
+        
+        function updateHistogramHighlight() {
+            const bars = document.querySelectorAll('.histogram-bar');
+            
+            bars.forEach(bar => {
+                if (bar.dataset.date === 'long-term') {
+                    // Long-term bar is active if dateRangeMax is beyond 2 months
+                    const longTermCutoff = getLongTermCutoff();
+                    bar.classList.toggle('active', dateRangeMax >= longTermCutoff);
+                } else {
+                    const barDate = new Date(bar.dataset.date);
+                    bar.classList.toggle('active', barDate >= dateRangeMin && barDate <= dateRangeMax);
+                }
+            });
         }
     </script>
 </body>
