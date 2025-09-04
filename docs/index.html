@@ -3,1462 +3,553 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art Opportunities Explorer - Supabase Live</title>
-    
-    <!-- FullCalendar for calendar view -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
-    
-    <!-- Supabase client -->
+    <title>Art Opportunities Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #2c3e50;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .live-badge {
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-left: 1rem;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        
-        .config-panel {
-            background: white;
-            padding: 1.5rem;
-            margin: 1rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .config-panel h3 {
-            margin-bottom: 1rem;
-            color: #667eea;
-        }
-        
-        .config-form {
-            display: grid;
-            gap: 1rem;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .form-group label {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .form-group input {
-            padding: 0.75rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .help-text {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-top: 0.25rem;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .btn:hover {
-            background: #5a67d8;
-        }
-        
-        .btn-refresh {
-            margin-left: auto;
-            padding: 0.5rem 1rem;
-            background: #10b981;
-            font-size: 0.9rem;
-        }
-        
-        .btn-refresh:hover {
-            background: #059669;
-        }
-        
-        .stats {
-            display: flex;
-            gap: 2rem;
-            padding: 1rem 1.5rem;
-            background: white;
-            margin: 0 1rem 1rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-bottom: 0.25rem;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .filters {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem 1.5rem;
-            background: white;
-            margin: 0 1rem 1rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .filter-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            margin-top: 4px;
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            z-index: 1000;
-            min-width: 200px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .filter-option {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .filter-option:hover {
-            background: #f8f9fa;
-        }
-        
-        .filter-option input {
-            margin-right: 0.5rem;
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            padding: 0.75rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 1rem;
-            height: 52px;
-        }
-        
-        .search-box:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .filter-btn {
-            padding: 0.75rem 1.25rem;
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            height: 52px;
-        }
-        
-        .filter-btn:hover {
-            border-color: #667eea;
-            background: #f8f9fa;
-        }
-        
-        .grid-container {
-            padding: 0 1rem 2rem;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-        
-        @media (max-width: 1200px) {
-            .grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .card {
-            background: white;
-            border-radius: 6px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            border: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            padding-bottom: 2rem;
-        }
-        
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-            border-color: #667eea;
-        }
-        
-        .card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
-        }
-        
-        .description-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .description-preview {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-        }
-        
-        .card-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .meta-item {
-            font-size: 0.875rem;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-        }
-        
-        .location-not-specified {
-            opacity: 0.6;
-            font-style: italic;
-        }
-        
-        .location-indicator {
-            font-size: 0.8em;
-            opacity: 0.7;
-            font-style: italic;
-        }
-        
-        .deadline-soon {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .badge-cafe { background: #e3f2fd; color: #1976d2; }
-        .badge-zapplication { background: #f3e5f5; color: #7b1fa2; }
-        .badge-artcall { background: #e8f5e9; color: #388e3c; }
-        .badge-artwork_archive { background: #fff3e0; color: #f57c00; }
-        .badge-showsubmit { background: #fce4ec; color: #c2185b; }
-        
-        .multi-filter {
-            position: relative;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            padding: 2rem;
-        }
-        
-        .page-info {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-        }
-        
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            padding: 0 1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .tab {
-            padding: 0.75rem 1.5rem;
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        
-        .tab:hover {
-            border-color: #667eea;
-        }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .calendar-container {
-            background: white;
-            padding: 2rem;
-            margin: 0 1rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .checkbox-group input[type="checkbox"] {
-            width: 1.2rem;
-            height: 1.2rem;
-            cursor: pointer;
-        }
-        
-        .checkbox-group label {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        /* Date Range Slider Styles */
-        .date-slider-container {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            border: 2px solid #e1e8ed;
-            min-width: 300px;
-            flex: 1;
-            max-width: 500px;
-            height: 75px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        
-        .date-slider-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.25rem;
-        }
-        
-        .date-slider-label {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            font-weight: 600;
-        }
-        
-        .date-range-display {
-            font-size: 0.85rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        
-        .histogram-container {
-            position: relative;
-            height: 120px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .histogram-bars {
-            display: flex;
-            align-items: flex-end;
-            height: 100%;
-            gap: 1px;
-        }
-        
-        .histogram-bar {
-            flex: 1;
-            background: #cbd5e0;
-            transition: background 0.2s;
-            cursor: pointer;
-            min-width: 1px;
-        }
-        
-        .histogram-bar.active {
-            background: #667eea;
-        }
-        
-        .histogram-bar.long-term {
-            background: #94a3b8;
-            flex: 0 0 20px;
-            margin-left: 2px;
-        }
-        
-        .histogram-bar.long-term.active {
-            background: #764ba2;
-        }
-        
-        .slider-handles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-        
-        .slider-handle {
-            position: absolute;
-            top: -10px;
-            width: 16px;
-            height: 140px;
-            background: white;
-            border: 3px solid #667eea;
-            border-radius: 6px;
-            cursor: ew-resize;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-        
-        .slider-selection {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            background: rgba(102, 126, 234, 0.3);
-            pointer-events: none;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: #7f8c8d;
-        }
-        
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 1rem;
-            margin: 1rem;
-            border-radius: 8px;
-            border: 1px solid #fcc;
-        }
-        
-        #calendarView {
-            display: none;
-        }
-        
-        .fc-event {
-            cursor: pointer;
-            padding: 2px 4px;
-        }
-        
-        .fc-event-title {
-            font-weight: 600;
-        }
-        
-        .status-message {
-            padding: 1rem;
-            margin: 1rem;
-            border-radius: 8px;
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            color: #0369a1;
-        }
+        body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body>
-    <header>
-        <h1>Art Opportunities Explorer <span class="live-badge">LIVE</span></h1>
-        <p>Real-time art call opportunities from Supabase</p>
-    </header>
-    
-    <div id="configPanel" class="config-panel">
-        <h3>⚙️ Database Configuration</h3>
-        <div class="config-form">
-            <div class="form-group">
-                <label for="supabaseUrl">Supabase URL</label>
-                <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co">
-                <span class="help-text">Your Supabase project URL (found in project settings)</span>
-            </div>
-            <div class="form-group">
-                <label for="supabaseKey">Supabase Anon Key</label>
-                <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                <span class="help-text">Your public anon key (safe to use in browser)</span>
-            </div>
-            <button class="btn" onclick="connect()">Connect to Database</button>
-        </div>
-    </div>
-    
-    <div id="mainContent" style="display: none;">
-        <div class="stats">
-            <div class="stat-item">
-                <span class="stat-label">Total Opportunities</span>
-                <span class="stat-value" id="totalCount">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Active</span>
-                <span class="stat-value" id="activeCount">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Expiring Soon</span>
-                <span class="stat-value" id="expiringCount">0</span>
-            </div>
-            <button class="btn btn-refresh" onclick="fetchOpportunities()">🔄 Refresh</button>
-        </div>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="switchView('grid')">Grid View</div>
-            <div class="tab" onclick="switchView('calendar')">Calendar View</div>
-        </div>
-        
-        <div class="filters">
-            <input type="text" class="search-box" id="searchBox" placeholder="Search opportunities..." onkeyup="filterOpportunities()">
-            
-            <div class="multi-filter">
-                <button class="filter-btn" onclick="toggleFilterDropdown()">
-                    <span id="filterLabel">All Sources</span> ▼
-                </button>
-                <div id="filterDropdown" class="filter-dropdown" style="display: none;">
-                    <label class="filter-option">
-                        <input type="checkbox" value="" id="allSources" checked onchange="toggleAllSources()">
-                        <span>All Sources</span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="checkbox-group">
-                <input type="checkbox" id="hideExpired" onchange="filterOpportunities()">
-                <label for="hideExpired">Hide Expired</label>
-            </div>
-            
-            <div class="date-slider-container">
-                <div class="date-slider-header">
-                    <span class="date-slider-label">Deadline Range</span>
-                    <span class="date-range-display" id="dateRangeDisplay">All dates</span>
-                </div>
-                <div class="histogram-container" id="histogramContainer">
-                    <div class="histogram-bars" id="histogramBars"></div>
-                    <div class="slider-handles">
-                        <div class="slider-selection" id="sliderSelection"></div>
-                        <div class="slider-handle" id="handleMin"></div>
-                        <div class="slider-handle" id="handleMax"></div>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-xl font-semibold tracking-tight text-gray-900">Art Opportunities</h1>
+                    <div class="flex items-center space-x-2">
+                        <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm text-gray-600">Live from Supabase</span>
                     </div>
                 </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">
+                        <span id="totalCount" class="font-semibold">0</span> opportunities
+                    </span>
+                    <button onclick="refreshData()" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                </div>
             </div>
         </div>
-        
-        <div id="gridView" class="grid-container">
-            <div id="opportunitiesGrid" class="grid"></div>
-            <div class="pagination">
-                <button class="btn" onclick="changePage(-1)" id="prevBtn">← Previous</button>
-                <span class="page-info" id="pageInfo">Page 1 of 1</span>
-                <button class="btn" onclick="changePage(1)" id="nextBtn">Next →</button>
+    </header>
+
+    <!-- Supabase Config Modal -->
+    <div id="configModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-semibold mb-6">Connect to Supabase</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Supabase URL</label>
+                    <input type="text" id="supabaseUrl" placeholder="https://your-project.supabase.co" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Anon Key</label>
+                    <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <button onclick="connectSupabase()" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                    Connect
+                </button>
             </div>
-        </div>
-        
-        <div id="calendarView" class="calendar-container">
-            <div id="calendar"></div>
         </div>
     </div>
-    
-    <div id="statusMessage" class="status-message" style="display: none;"></div>
-    
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Filters Sidebar -->
+            <aside class="w-full lg:w-80 space-y-6">
+                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 tracking-tight">Filters</h2>
+                    
+                    <!-- Search -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search opportunities..." 
+                                   onkeyup="filterOpportunities()"
+                                   class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Sources -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Sources</label>
+                        <div class="space-y-2" id="sourceFilters">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Fee Range -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Entry Fees</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="fees" value="all" checked onchange="filterOpportunities()" 
+                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                <span class="ml-3 text-sm text-gray-700">Any amount</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="fees" value="free" onchange="filterOpportunities()"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                <span class="ml-3 text-sm text-gray-700">Free only</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="fees" value="under25" onchange="filterOpportunities()"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                <span class="ml-3 text-sm text-gray-700">Under $25</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="fees" value="under50" onchange="filterOpportunities()"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                <span class="ml-3 text-sm text-gray-700">Under $50</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hide Expired -->
+                    <div class="mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="hideExpired" onchange="filterOpportunities()" 
+                                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <span class="ml-3 text-sm text-gray-700">Hide expired</span>
+                        </label>
+                    </div>
+
+                    <button onclick="clearFilters()" class="w-full bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                        Clear all filters
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Statistics</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total</span>
+                            <span class="font-medium" id="statTotal">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Active</span>
+                            <span class="font-medium text-green-600" id="statActive">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Free Entry</span>
+                            <span class="font-medium" id="statFree">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">With Location</span>
+                            <span class="font-medium" id="statLocation">0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1">
+                <!-- Results Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-900 tracking-tight">Opportunities</h2>
+                        <p class="text-sm text-gray-600 mt-1">
+                            <span id="filteredCount">0</span> results
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-4 mt-4 sm:mt-0">
+                        <select id="sortBy" onchange="sortOpportunities()" 
+                                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="deadline">Deadline: Soonest</option>
+                            <option value="newest">Recently added</option>
+                            <option value="title">Title: A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading" class="flex items-center justify-center py-12">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                        <p class="mt-4 text-gray-600">Loading opportunities...</p>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div id="opportunitiesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Cards will be inserted here -->
+                </div>
+
+                <!-- No Results -->
+                <div id="noResults" class="hidden text-center py-12">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+                    <p class="text-gray-600">No opportunities match your filters</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
     <script>
         let supabase = null;
         let opportunities = [];
         let filteredOpportunities = [];
-        let currentPage = 1;
-        const itemsPerPage = 30;
-        let calendar = null;
-        let currentView = 'grid';
-        
-        // Date range state
-        let dateRangeMin = null;
-        let dateRangeMax = null;
-        let isDragging = null;
-        let dragStartX = 0;
-        let dragStartValue = 0;
-        
-        // Load saved config
-        window.onload = () => {
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved credentials
             const savedUrl = localStorage.getItem('supabaseUrl');
             const savedKey = localStorage.getItem('supabaseKey');
             
-            if (savedUrl) document.getElementById('supabaseUrl').value = savedUrl;
-            if (savedKey) document.getElementById('supabaseKey').value = savedKey;
-            
             if (savedUrl && savedKey) {
-                connect();
+                document.getElementById('supabaseUrl').value = savedUrl;
+                document.getElementById('supabaseKey').value = savedKey;
+                connectSupabase();
+            } else {
+                document.getElementById('configModal').classList.remove('hidden');
             }
-        };
-        
+            
+            // Initialize Lucide icons
+            lucide.createIcons();
+        });
+
         // Connect to Supabase
-        async function connect() {
+        async function connectSupabase() {
             const url = document.getElementById('supabaseUrl').value;
             const key = document.getElementById('supabaseKey').value;
             
             if (!url || !key) {
-                alert('Please enter both Supabase URL and API key');
+                alert('Please enter both URL and key');
                 return;
             }
             
             try {
                 supabase = window.supabase.createClient(url, key);
                 
-                // Save config
+                // Test connection
+                const { data, error } = await supabase
+                    .from('opportunities')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (error) throw error;
+                
+                // Save credentials
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
                 
-                // Hide config, show main content
-                document.getElementById('configPanel').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                
-                // Fetch data
-                await fetchOpportunities();
-                
-                // Setup calendar
-                setupCalendar();
+                // Hide modal and load data
+                document.getElementById('configModal').classList.add('hidden');
+                loadOpportunities();
                 
             } catch (error) {
-                alert('Failed to connect: ' + error.message);
+                alert('Connection failed: ' + error.message);
             }
         }
-        
-        // Fetch opportunities from Supabase
-        async function fetchOpportunities() {
-            if (!supabase) return;
-            
-            showStatus('Loading opportunities...');
+
+        // Load opportunities from Supabase
+        async function loadOpportunities() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('opportunitiesGrid').innerHTML = '';
             
             try {
-                // First, get the total count
-                const { count: totalCount } = await supabase
+                const { data, error } = await supabase
                     .from('opportunities')
-                    .select('*', { count: 'exact', head: true });
+                    .select('*')
+                    .order('created_at', { ascending: false });
                 
-                console.log(`Total opportunities in database: ${totalCount}`);
+                if (error) throw error;
                 
-                // Fetch all data in batches
-                const batchSize = 1000;
-                const allData = [];
+                opportunities = data || [];
+                document.getElementById('totalCount').textContent = opportunities.length;
                 
-                for (let offset = 0; offset < totalCount; offset += batchSize) {
-                    console.log(`Fetching batch: ${offset} to ${Math.min(offset + batchSize, totalCount)}`);
-                    
-                    const { data, error } = await supabase
-                        .from('opportunities')
-                        .select('*')
-                        .order('deadline_parsed', { ascending: true, nullsFirst: false })
-                        .range(offset, Math.min(offset + batchSize - 1, totalCount - 1));
-                    
-                    if (error) throw error;
-                    if (data) {
-                        allData.push(...data);
-                    }
-                }
+                // Build source filters
+                buildSourceFilters();
                 
-                console.log(`Successfully fetched ${allData.length} opportunities`);
-                
-                // Filter for active opportunities (deadline not passed)
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                yesterday.setHours(0, 0, 0, 0);
-                
-                const activeOpportunities = allData.filter(opp => {
-                    if (!opp.deadline_parsed && !opp.deadline_raw) return true; // Keep if no deadline
-                    const deadline = opp.deadline_parsed ? new Date(opp.deadline_parsed) : null;
-                    return !deadline || deadline >= yesterday; // Keep if deadline is within last 24 hours or future
-                });
-                
-                console.log(`Active opportunities: ${activeOpportunities.length}`);
-                
-                // Log source distribution
-                const sources = {};
-                allData.forEach(o => {
-                    sources[o.source_platform] = (sources[o.source_platform] || 0) + 1;
-                });
-                console.log('By source:', sources);
-                console.log('Sample items:', allData.slice(0, 5).map(o => ({
-                    title: o.title?.substring(0, 30),
-                    source: o.source_platform
-                })));
-                
-                // Make sure we have data before rendering
-                if (opportunities.length > 0) {
-                    updateStats();
-                    setupDateRangeSlider();
-                    filterOpportunities();
-                }
-                
-                opportunities = activeOpportunities;
-                
-                // Populate source filter checkboxes with actual values
-                const uniqueSources = [...new Set(allData.map(o => o.source_platform))].sort();
-                const filterDropdown = document.getElementById('filterDropdown');
-                
-                // Clear existing checkboxes except "All Sources"
-                const existingCheckboxes = filterDropdown.querySelectorAll('.filter-option:not(:first-child)');
-                existingCheckboxes.forEach(el => el.remove());
-                
-                // Add checkboxes for each source
-                uniqueSources.forEach(source => {
-                    const label = document.createElement('label');
-                    label.className = 'filter-option';
-                    label.innerHTML = `
-                        <input type="checkbox" value="${source}" class="source-checkbox" checked onchange="updateSourceFilter()">
-                        <span>${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                    `;
-                    filterDropdown.appendChild(label);
-                });
-                
-                // Re-setup checkbox listeners
-                document.querySelectorAll('.source-checkbox').forEach(cb => {
-                    cb.addEventListener('change', () => {
-                        const allCheckbox = document.getElementById('allSources');
-                        const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
-                        const checkedCount = Array.from(sourceCheckboxes).filter(c => c.checked).length;
-                        
-                        if (checkedCount === 0) {
-                            allCheckbox.checked = false;
-                            allCheckbox.indeterminate = false;
-                        } else if (checkedCount === sourceCheckboxes.length) {
-                            allCheckbox.checked = true;
-                            allCheckbox.indeterminate = false;
-                        } else {
-                            allCheckbox.checked = false;
-                            allCheckbox.indeterminate = true;
-                        }
-                        
-                        updateFilterLabel();
-                    });
-                });
-                
-                hideStatus();
-                
+                // Update stats
                 updateStats();
-                setupDateRangeSlider();
+                
+                // Initial filter
                 filterOpportunities();
                 
             } catch (error) {
-                console.error('Error fetching opportunities:', error);
-                showStatus('Error loading opportunities: ' + error.message, true);
+                console.error('Error loading opportunities:', error);
+                alert('Failed to load opportunities: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
-        
-        // Setup event listeners to close dropdown when clicking outside
-        document.addEventListener('DOMContentLoaded', () => {
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.multi-filter')) {
-                    document.getElementById('filterDropdown').style.display = 'none';
-                }
-            });
-        });
-        
-        // Update stats
-        function updateStats() {
-            document.getElementById('totalCount').textContent = opportunities.length;
+
+        // Build source filter checkboxes
+        function buildSourceFilters() {
+            const sources = [...new Set(opportunities.map(o => o.source_platform))].filter(Boolean);
+            const container = document.getElementById('sourceFilters');
             
-            const activeCount = opportunities.filter(o => {
-                if (!o.deadline_parsed) return true;
-                return new Date(o.deadline_parsed) >= new Date();
-            }).length;
-            document.getElementById('activeCount').textContent = activeCount;
-            
-            const expiringCount = opportunities.filter(o => isDeadlineSoon(o.deadline_parsed)).length;
-            document.getElementById('expiringCount').textContent = expiringCount;
+            container.innerHTML = sources.map(source => `
+                <label class="flex items-center">
+                    <input type="checkbox" value="${source}" checked onchange="filterOpportunities()"
+                           class="source-filter w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="ml-3 text-sm text-gray-700">${source.toUpperCase()}</span>
+                </label>
+            `).join('');
         }
-        
-        // Toggle filter dropdown
-        function toggleFilterDropdown() {
-            const dropdown = document.getElementById('filterDropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        // Toggle all sources
-        function toggleAllSources() {
-            const allCheckbox = document.getElementById('allSources');
-            const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
-            
-            sourceCheckboxes.forEach(cb => {
-                cb.checked = allCheckbox.checked;
-            });
-            
-            updateFilterLabel();
-            filterOpportunities();
-        }
-        
-        // Update source filter
-        function updateSourceFilter() {
-            updateFilterLabel();
-            filterOpportunities();
-        }
-        
-        // Update filter label
-        function updateFilterLabel() {
-            const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
-            const checkedSources = Array.from(sourceCheckboxes).filter(cb => cb.checked);
-            const label = document.getElementById('filterLabel');
-            
-            if (checkedSources.length === 0) {
-                label.textContent = 'No sources';
-            } else if (checkedSources.length === sourceCheckboxes.length) {
-                label.textContent = 'All Sources';
-            } else if (checkedSources.length === 1) {
-                label.textContent = checkedSources[0].value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            } else {
-                label.textContent = `${checkedSources.length} sources`;
-            }
-        }
-        
+
         // Filter opportunities
         function filterOpportunities() {
-            const search = document.getElementById('searchBox').value.toLowerCase();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const hideExpired = document.getElementById('hideExpired').checked;
-            const selectedSources = Array.from(document.querySelectorAll('.source-checkbox:checked')).map(cb => cb.value);
-            const allCheckbox = document.getElementById('allSources');
-            const allChecked = allCheckbox.checked;
+            const feeFilter = document.querySelector('input[name="fees"]:checked').value;
+            const selectedSources = Array.from(document.querySelectorAll('.source-filter:checked')).map(cb => cb.value);
             
-            filteredOpportunities = opportunities.filter(o => {
-                // Filter by source
-                if (!allChecked && selectedSources.length > 0 && !selectedSources.includes(o.source_platform)) {
+            filteredOpportunities = opportunities.filter(opp => {
+                // Source filter
+                if (selectedSources.length > 0 && !selectedSources.includes(opp.source_platform)) {
                     return false;
                 }
                 
-                // Filter by deadline range
-                if (o.deadline_parsed || o.deadline_raw) {
-                    const deadline = o.deadline_parsed ? new Date(o.deadline_parsed) : null;
+                // Search filter
+                if (searchTerm) {
+                    const searchableText = [
+                        opp.title,
+                        opp.organization,
+                        opp.description,
+                        opp.location_raw,
+                        opp.location_city,
+                        opp.location_state
+                    ].filter(Boolean).join(' ').toLowerCase();
                     
-                    // Hide expired if checkbox is checked
-                    if (hideExpired && deadline && deadline < new Date()) {
+                    if (!searchableText.includes(searchTerm)) {
                         return false;
-                    }
-                    
-                    // Filter by date range slider
-                    if (dateRangeMin && dateRangeMax && deadline) {
-                        if (deadline < dateRangeMin || deadline > dateRangeMax) {
-                            return false;
-                        }
                     }
                 }
                 
-                // Filter by search
-                if (search) {
-                    // Include enriched description in search
-                    let searchDescription = o.description;
-                    if (o.extras) {
-                        let extras = o.extras;
-                        if (typeof extras === 'string') {
-                            try { extras = JSON.parse(extras); } catch(e) {}
-                        }
-                        if (extras && extras.enriched_description) {
-                            searchDescription = extras.enriched_description;
-                        }
+                // Expired filter
+                if (hideExpired && opp.deadline_parsed) {
+                    const deadline = new Date(opp.deadline_parsed);
+                    if (deadline < new Date()) {
+                        return false;
                     }
-                    const text = `${o.title} ${o.organization} ${o.location_raw} ${o.location_city} ${o.location_state} ${o.location_country} ${searchDescription}`.toLowerCase();
-                    if (!text.includes(search)) return false;
                 }
+                
+                // Fee filter
+                if (feeFilter !== 'all') {
+                    const feeCategory = opp.extras?.fee_category || 'unknown';
+                    
+                    if (feeFilter === 'free' && feeCategory !== 'free') return false;
+                    if (feeFilter === 'under25' && !['free', 'under_25'].includes(feeCategory)) return false;
+                    if (feeFilter === 'under50' && !['free', 'under_25', '25_to_50'].includes(feeCategory)) return false;
+                }
+                
                 return true;
             });
             
-            // Always sort by deadline (nearest to furthest)
+            document.getElementById('filteredCount').textContent = filteredOpportunities.length;
+            sortOpportunities();
+        }
+
+        // Sort opportunities
+        function sortOpportunities() {
+            const sortBy = document.getElementById('sortBy').value;
+            
             filteredOpportunities.sort((a, b) => {
-                const dateA = a.deadline_parsed ? new Date(a.deadline_parsed) : null;
-                const dateB = b.deadline_parsed ? new Date(b.deadline_parsed) : null;
-                
-                if (!dateA && !dateB) return 0;
-                if (!dateA) return 1;
-                if (!dateB) return -1;
-                
-                return dateA - dateB;
+                switch(sortBy) {
+                    case 'deadline':
+                        const deadlineA = a.deadline_parsed || '9999-12-31';
+                        const deadlineB = b.deadline_parsed || '9999-12-31';
+                        return deadlineA.localeCompare(deadlineB);
+                    case 'newest':
+                        return b.created_at.localeCompare(a.created_at);
+                    case 'title':
+                        return (a.title || '').localeCompare(b.title || '');
+                    default:
+                        return 0;
+                }
             });
             
-            currentPage = 1;
             renderOpportunities();
-            
-            // Update calendar if it's visible
-            if (currentView === 'calendar' && calendar) {
-                updateCalendarEvents();
-            }
         }
-        
-        // Render opportunities grid
+
+        // Render opportunity cards
         function renderOpportunities() {
             const grid = document.getElementById('opportunitiesGrid');
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageOpportunities = filteredOpportunities.slice(start, end);
+            const noResults = document.getElementById('noResults');
             
-            grid.innerHTML = pageOpportunities.map(o => {
-                return `
-                <div class="card" onclick="window.open('${o.url}', '_blank')">
-                    <div class="card-title">${o.title || 'Untitled'}</div>
-                    
-                    <div class="card-meta">
-                        ${o.deadline_raw || o.deadline_parsed ? `
-                            <div class="meta-item ${isDeadlineSoon(o.deadline_parsed) ? 'deadline-soon' : ''}">
-                                ${formatDeadline(o.deadline_raw, o.deadline_parsed)}
-                            </div>
-                        ` : ''}
-                        ${(() => {
-                            // Simplified location display
-                            let locationHtml = '';
-                            let locationText = '';
-                            
-                            // Check for enriched location data in extras
-                            if (o.extras && o.extras.location_metadata) {
-                                const meta = o.extras.location_metadata;
-                                locationText = meta.enriched || o.location || 'Location Not Specified';
-                            } 
-                            // Fallback to old location display logic
-                            else {
-                                const hasStructured = o.location_city || o.location_state || o.location_country;
-                                
-                                if (hasStructured) {
-                                    const parts = [];
-                                    if (o.location_city) parts.push(o.location_city);
-                                    if (o.location_state) parts.push(o.location_state);
-                                    if (o.location_country && o.location_country !== 'United States') {
-                                        parts.push(o.location_country);
-                                    }
-                                    locationText = parts.join(', ');
-                                } else if (o.location_raw) {
-                                    locationText = o.location_raw;
-                                } else if (o.location) {
-                                    locationText = o.location;
-                                } else {
-                                    locationText = 'Location Not Specified';
-                                }
-                            }
-                            
-                            // Simple display without emoji or extra indicators
-                            locationHtml = `<div class="meta-item">${locationText}</div>`;
-                            
-                            return locationHtml;
-                        })()}
-                    </div>
-                    
-                    <div class="description-container" style="margin: 0.75rem 0 0 0;">
-                        <p style="color: #5f6c7d; font-size: 0.9rem; line-height: 1.4; margin: 0;">
-                            ${(() => {
-                                // Show ONLY artist summary if available, otherwise nothing
-                                let summary = '';
-                                if (o.extras && typeof o.extras === 'object') {
-                                    summary = o.extras.artist_summary || o.extras.summary || '';
-                                } else if (o.extras && typeof o.extras === 'string') {
-                                    try {
-                                        const extras = JSON.parse(o.extras);
-                                        summary = extras.artist_summary || extras.summary || '';
-                                    } catch(e) {
-                                        summary = '';
-                                    }
-                                }
-                                
-                                if (summary) {
-                                    return summary;
-                                } else {
-                                    return '<i style="color: #bbb;">No artist summary available</i>';
-                                }
-                            })()}
-                        </p>
-                        
-                        ${o.url ? `
-                            <a href="${o.url}" target="_blank" style="display: inline-block; margin-top: 0.75rem; color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                                read more →
-                            </a>
-                        ` : ''}
-                    </div>
-                    
-                    <span class="badge badge-${o.source_platform}" style="position: absolute; bottom: 0.75rem; right: 0.75rem; font-size: 0.65rem; padding: 0.15rem 0.4rem; opacity: 0.6;">${o.source_platform}</span>
-                </div>
-            `;
-            }).join('');
-            
-            // Update pagination
-            const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
-            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-            document.getElementById('prevBtn').disabled = currentPage === 1;
-            document.getElementById('nextBtn').disabled = currentPage === totalPages;
-        }
-        
-        // Change page
-        function changePage(direction) {
-            const totalPages = Math.ceil(filteredOpportunities.length / itemsPerPage);
-            currentPage = Math.max(1, Math.min(currentPage + direction, totalPages));
-            renderOpportunities();
-            window.scrollTo(0, 0);
-        }
-        
-        // Check if deadline is soon (within 7 days)
-        function isDeadlineSoon(deadlineParsed) {
-            if (!deadlineParsed) return false;
-            const deadline = new Date(deadlineParsed);
-            const now = new Date();
-            const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
-            return daysUntil <= 7 && daysUntil >= 0;
-        }
-        
-        // Format date nicely with days remaining
-        function formatDeadline(deadlineRaw, deadlineParsed) {
-            // Try parsed date first, then raw
-            if (!deadlineParsed && !deadlineRaw) return 'No deadline';
-            
-            // If we have a parsed date, format it nicely
-            if (deadlineParsed) {
-                const date = new Date(deadlineParsed);
-                const now = new Date();
-                const daysUntil = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
-                
-                const formatted = date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                });
-                
-                if (daysUntil < 0) {
-                    return `${formatted} (Expired)`;
-                } else if (daysUntil === 0) {
-                    return `${formatted} (Today!)`;
-                } else if (daysUntil === 1) {
-                    return `${formatted} (Tomorrow)`;
-                } else if (daysUntil <= 7) {
-                    return `${formatted} (${daysUntil} days)`;
-                } else {
-                    return formatted;
-                }
-            }
-            
-            // Fallback to raw text
-            return deadlineRaw;
-        }
-        
-        // Switch view
-        function switchView(view) {
-            currentView = view;
-            
-            // Update tab states
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Show/hide views
-            if (view === 'grid') {
-                document.getElementById('gridView').style.display = 'block';
-                document.getElementById('calendarView').style.display = 'none';
-            } else {
-                document.getElementById('gridView').style.display = 'none';
-                document.getElementById('calendarView').style.display = 'block';
-                
-                if (!calendar) {
-                    setupCalendar();
-                } else {
-                    calendar.render();
-                    updateCalendarEvents();
-                }
-            }
-        }
-        
-        // Setup calendar
-        function setupCalendar() {
-            const calendarEl = document.getElementById('calendar');
-            if (!calendarEl) return;
-            
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,dayGridWeek'
-                },
-                events: [],
-                eventClick: function(info) {
-                    window.open(info.event.url, '_blank');
-                    info.jsEvent.preventDefault();
-                },
-                eventDidMount: function(info) {
-                    // Add tooltip
-                    const org = info.event.extendedProps.organization;
-                    const location = info.event.extendedProps.location;
-                    const source = info.event.extendedProps.source;
-                    
-                    let tooltip = info.event.title;
-                    if (org) tooltip += `\n${org}`;
-                    if (location) tooltip += `\n📍 ${location}`;
-                    if (source) tooltip += `\n[${source}]`;
-                    
-                    info.el.setAttribute('title', tooltip);
-                }
-            });
-            
-            if (currentView === 'calendar') {
-                calendar.render();
-                updateCalendarEvents();
-            }
-        }
-        
-        // Update calendar events
-        function updateCalendarEvents() {
-            if (!calendar) return;
-            
-            // Convert opportunities to calendar events
-            const events = filteredOpportunities
-                .filter(o => o.deadline_parsed)
-                .map(o => ({
-                    title: o.title,
-                    start: o.deadline_parsed,
-                    url: o.url,
-                    backgroundColor: getSourceColor(o.source_platform),
-                    borderColor: getSourceColor(o.source_platform),
-                    extendedProps: {
-                        organization: o.organization,
-                        source: o.source_platform,
-                        location: o.location_city && o.location_state ? 
-                            `${o.location_city}, ${o.location_state}` : 
-                            o.location_raw
-                    }
-                }));
-            
-            calendar.removeAllEvents();
-            calendar.addEventSource(events);
-        }
-        
-        // Get source color
-        function getSourceColor(source) {
-            const colors = {
-                'cafe': '#1976d2',
-                'zapplication': '#7b1fa2',
-                'artcall': '#388e3c',
-                'artwork_archive': '#f57c00',
-                'showsubmit': '#c2185b'
-            };
-            return colors[source] || '#666';
-        }
-        
-        // Show status message
-        function showStatus(message, isError = false) {
-            const statusEl = document.getElementById('statusMessage');
-            statusEl.textContent = message;
-            statusEl.style.display = 'block';
-            statusEl.style.background = isError ? '#fee' : '#f0f9ff';
-            statusEl.style.color = isError ? '#c00' : '#0369a1';
-            statusEl.style.borderColor = isError ? '#fcc' : '#bae6fd';
-        }
-        
-        // Hide status message
-        function hideStatus() {
-            document.getElementById('statusMessage').style.display = 'none';
-        }
-        
-        // Toggle description
-        function toggleDescription(button) {
-            const container = button.parentElement;
-            const preview = container.querySelector('.description-preview');
-            const full = container.querySelector('.description-full');
-            
-            if (full.style.display === 'none') {
-                preview.style.display = 'none';
-                full.style.display = 'block';
-                button.textContent = 'Read Less';
-            } else {
-                preview.style.display = '-webkit-box';
-                full.style.display = 'none';
-                button.textContent = 'Read More';
-            }
-        }
-        
-        // Date Range Slider Functions
-        function setupDateRangeSlider() {
-            const handleMin = document.getElementById('handleMin');
-            const handleMax = document.getElementById('handleMax');
-            const sliderContainer = document.getElementById('histogramContainer');
-            
-            console.log('Setting up slider:', { handleMin, handleMax, sliderContainer });
-            
-            if (!handleMin || !handleMax || !sliderContainer) {
-                console.error('Slider elements not found!');
+            if (filteredOpportunities.length === 0) {
+                grid.innerHTML = '';
+                noResults.classList.remove('hidden');
                 return;
             }
             
-            // Initialize date range
-            dateRangeMin = getMinDate();
-            dateRangeMax = getMaxDate();
+            noResults.classList.add('hidden');
             
-            console.log('Date range:', { 
-                min: dateRangeMin, 
-                max: dateRangeMax,
-                opportunities: opportunities.length 
-            });
+            grid.innerHTML = filteredOpportunities.map(opp => {
+                const deadline = formatDeadline(opp.deadline_parsed, opp.deadline_raw);
+                const location = formatLocation(opp);
+                const fee = formatFee(opp);
+                const description = getDescription(opp);
+                const isExpired = isDeadlineExpired(opp.deadline_parsed);
+                
+                return `
+                    <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:border-gray-300 ${isExpired ? 'opacity-60' : ''}">
+                        <div class="flex items-start justify-between mb-3">
+                            <h3 class="text-lg font-semibold text-gray-900 tracking-tight line-clamp-2">
+                                ${opp.title || 'Untitled Opportunity'}
+                            </h3>
+                        </div>
+                        ${opp.organization ? `
+                            <p class="text-sm text-gray-600 mb-2">${opp.organization}</p>
+                        ` : ''}
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3">${description}</p>
+                        <div class="space-y-2 mb-4">
+                            ${deadline ? `
+                                <div class="flex items-center text-sm ${isExpired ? 'text-red-600' : 'text-gray-500'}">
+                                    <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                                    ${deadline}
+                                </div>
+                            ` : ''}
+                            ${fee ? `
+                                <div class="flex items-center text-sm ${fee === 'Free entry' ? 'text-green-600' : 'text-gray-500'}">
+                                    <i data-lucide="${fee === 'Free entry' ? 'gift' : 'dollar-sign'}" class="w-4 h-4 mr-2"></i>
+                                    ${fee}
+                                </div>
+                            ` : ''}
+                            ${location ? `
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                                    ${location}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">
+                                ${opp.source_platform?.toUpperCase() || 'UNKNOWN'}
+                            </span>
+                            ${opp.extras?.opportunity_types?.slice(0, 2).map(type => `
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
+                                    ${type}
+                                </span>
+                            `).join('') || ''}
+                        </div>
+                        <button onclick="window.open('${opp.url}', '_blank')" 
+                                class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                `;
+            }).join('');
             
-            // Build histogram
-            buildHistogram();
-            
-            // Setup drag handlers
-            handleMin.addEventListener('mousedown', (e) => startDrag(e, 'min'));
-            handleMax.addEventListener('mousedown', (e) => startDrag(e, 'max'));
-            
-            document.addEventListener('mousemove', handleDrag);
-            document.addEventListener('mouseup', stopDrag);
-            
-            // Touch support
-            handleMin.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'min'));
-            handleMax.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'max'));
-            
-            document.addEventListener('touchmove', (e) => handleDrag(e.touches[0]));
-            document.addEventListener('touchend', stopDrag);
-            
-            updateSliderPositions();
+            // Re-initialize Lucide icons
+            lucide.createIcons();
         }
-        
-        function getMinDate() {
-            return new Date();
-        }
-        
-        function getMaxDate() {
-            const dates = opportunities
-                .filter(o => o.deadline_parsed || o.deadline_raw)
-                .map(o => o.deadline_parsed ? new Date(o.deadline_parsed) : null)
-                .filter(d => d);
+
+        // Helper functions
+        function formatDeadline(parsed, raw) {
+            if (!parsed && !raw) return null;
             
-            if (dates.length === 0) {
-                const future = new Date();
-                future.setMonth(future.getMonth() + 12);
-                return future;
+            if (parsed) {
+                const date = new Date(parsed);
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                return `Deadline: ${date.toLocaleDateString('en-US', options)}`;
             }
             
-            return new Date(Math.max(...dates));
+            return `Deadline: ${raw}`;
         }
-        
-        function getLongTermCutoff() {
-            const cutoff = new Date();
-            cutoff.setMonth(cutoff.getMonth() + 2); // 2 months from now
-            return cutoff;
-        }
-        
-        function buildHistogram() {
-            const container = document.getElementById('histogramBars');
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const longTermCutoff = getLongTermCutoff();
-            const eightWeeksOut = new Date();
-            eightWeeksOut.setDate(eightWeeksOut.getDate() + 56); // 8 weeks
-            
-            // Use daily bins for next 8 weeks
-            const daysInRange = Math.min(56, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
-            const bins = new Array(daysInRange).fill(0);
-            let longTermCount = 0;
-            
-            opportunities.forEach(o => {
-                if (o.deadline_parsed || o.deadline_raw) {
-                    const date = o.deadline_parsed ? new Date(o.deadline_parsed) : null;
-                    if (date) {
-                        if (date <= eightWeeksOut) {
-                            const dayIndex = Math.floor((date - minDate) / (1000 * 60 * 60 * 24));
-                            if (dayIndex >= 0 && dayIndex < daysInRange) {
-                                bins[dayIndex]++;
-                            }
-                        } else {
-                            longTermCount++;
-                        }
-                    }
+
+        function formatLocation(opp) {
+            // Check for enriched location
+            if (opp.extras?.location_enriched) {
+                const loc = opp.extras.location_enriched;
+                if (loc.city && loc.state_code) {
+                    return `${loc.city}, ${loc.state_code}`;
                 }
-            });
-            
-            const maxCount = Math.max(...bins, longTermCount);
-            
-            // Clear and rebuild histogram
-            container.innerHTML = '';
-            
-            // Add daily bins for next 8 weeks
-            bins.forEach((count, i) => {
-                const bar = document.createElement('div');
-                bar.className = 'histogram-bar';
-                bar.style.height = maxCount > 0 ? `${(count / maxCount) * 100}%` : '0%';
-                bar.dataset.date = new Date(minDate.getTime() + i * 24 * 60 * 60 * 1000).toISOString();
-                bar.dataset.count = count;
-                container.appendChild(bar);
-            });
-            
-            // Add consolidated long-term bar
-            if (longTermCount > 0) {
-                const longTermBar = document.createElement('div');
-                longTermBar.className = 'histogram-bar long-term';
-                longTermBar.style.height = `${(longTermCount / maxCount) * 100}%`;
-                longTermBar.dataset.date = 'long-term';
-                longTermBar.dataset.count = longTermCount;
-                container.appendChild(longTermBar);
+                if (loc.city && loc.country) {
+                    return `${loc.city}, ${loc.country}`;
+                }
+                if (loc.display_name) {
+                    return loc.display_name;
+                }
             }
+            
+            // Fallback to raw location
+            if (opp.location_city || opp.location_state) {
+                const parts = [];
+                if (opp.location_city) parts.push(opp.location_city);
+                if (opp.location_state) parts.push(opp.location_state);
+                return parts.join(', ');
+            }
+            
+            return opp.location_raw || null;
         }
-        
-        function startDrag(e, handle) {
-            isDragging = handle;
-            dragStartX = e.clientX;
-            const rect = document.getElementById('histogramContainer').getBoundingClientRect();
+
+        function formatFee(opp) {
+            const feeCategory = opp.extras?.fee_category;
             
-            if (handle === 'min') {
-                dragStartValue = (dateRangeMin - getMinDate()) / (getMaxDate() - getMinDate());
-            } else {
-                dragStartValue = (dateRangeMax - getMinDate()) / (getMaxDate() - getMinDate());
-            }
+            if (feeCategory === 'free') return 'Free entry';
+            if (feeCategory === 'under_25') return 'Entry fee: Under $25';
+            if (feeCategory === '25_to_50') return 'Entry fee: $25-50';
+            if (feeCategory === '50_to_100') return 'Entry fee: $50-100';
+            if (feeCategory === 'over_100') return 'Entry fee: Over $100';
             
-            e.preventDefault();
+            if (opp.fee_amount) return `Entry fee: $${opp.fee_amount}`;
+            if (opp.fee_raw) return `Entry fee: ${opp.fee_raw}`;
+            
+            return null;
         }
-        
-        function handleDrag(e) {
-            if (!isDragging) return;
-            
-            const rect = document.getElementById('histogramContainer').getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percentage = Math.max(0, Math.min(1, x / rect.width));
-            
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            const newDate = new Date(minDate.getTime() + percentage * (maxDate - minDate));
-            
-            if (isDragging === 'min') {
-                dateRangeMin = new Date(Math.min(newDate, dateRangeMax));
-            } else {
-                dateRangeMax = new Date(Math.max(newDate, dateRangeMin));
+
+        function getDescription(opp) {
+            // Prefer enriched description
+            if (opp.extras?.enriched_description) {
+                return opp.extras.enriched_description.substring(0, 200) + '...';
             }
             
-            updateSliderPositions();
-            updateHistogramHighlight();
+            // Fallback to regular description
+            if (opp.description) {
+                return opp.description.substring(0, 200) + '...';
+            }
+            
+            return 'No description available';
+        }
+
+        function isDeadlineExpired(deadlineParsed) {
+            if (!deadlineParsed) return false;
+            return new Date(deadlineParsed) < new Date();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const now = new Date();
+            
+            const active = opportunities.filter(o => {
+                if (!o.deadline_parsed) return true;
+                return new Date(o.deadline_parsed) >= now;
+            }).length;
+            
+            const free = opportunities.filter(o => 
+                o.extras?.fee_category === 'free'
+            ).length;
+            
+            const withLocation = opportunities.filter(o => 
+                o.location_raw || o.location_city || o.extras?.location_enriched
+            ).length;
+            
+            document.getElementById('statTotal').textContent = opportunities.length;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statFree').textContent = free;
+            document.getElementById('statLocation').textContent = withLocation;
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('hideExpired').checked = false;
+            document.querySelector('input[name="fees"][value="all"]').checked = true;
+            document.querySelectorAll('.source-filter').forEach(cb => cb.checked = true);
             filterOpportunities();
         }
-        
-        function stopDrag() {
-            isDragging = null;
-        }
-        
-        function updateSliderPositions() {
-            const handleMin = document.getElementById('handleMin');
-            const handleMax = document.getElementById('handleMax');
-            const selection = document.getElementById('sliderSelection');
-            const container = document.getElementById('histogramContainer');
-            
-            if (!handleMin || !handleMax || !selection || !container) return;
-            
-            const minDate = getMinDate();
-            const maxDate = getMaxDate();
-            
-            const minPercent = ((dateRangeMin - minDate) / (maxDate - minDate)) * 100;
-            const maxPercent = ((dateRangeMax - minDate) / (maxDate - minDate)) * 100;
-            
-            handleMin.style.left = `calc(${minPercent}% - 8px)`;
-            handleMax.style.left = `calc(${maxPercent}% - 8px)`;
-            
-            selection.style.left = `${minPercent}%`;
-            selection.style.width = `${maxPercent - minPercent}%`;
-            
-            // Update display text
-            const formatDate = (date) => {
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const cutoff = getLongTermCutoff();
-                
-                if (date >= cutoff) {
-                    return 'Long term';
-                }
-                
-                return `${months[date.getMonth()]} ${date.getDate()}`;
-            };
-            
-            document.getElementById('dateRangeDisplay').textContent = 
-                `${formatDate(dateRangeMin)} - ${formatDate(dateRangeMax)}`;
-            
-            // Update histogram
-            updateHistogramHighlight();
-        }
-        
-        function updateHistogramHighlight() {
-            const bars = document.querySelectorAll('.histogram-bar');
-            
-            bars.forEach(bar => {
-                if (bar.dataset.date === 'long-term') {
-                    // Long-term bar is active if dateRangeMax is beyond 2 months
-                    const longTermCutoff = getLongTermCutoff();
-                    bar.classList.toggle('active', dateRangeMax >= longTermCutoff);
-                } else {
-                    const barDate = new Date(bar.dataset.date);
-                    bar.classList.toggle('active', barDate >= dateRangeMin && barDate <= dateRangeMax);
-                }
-            });
+
+        // Refresh data
+        function refreshData() {
+            loadOpportunities();
         }
     </script>
 </body>
