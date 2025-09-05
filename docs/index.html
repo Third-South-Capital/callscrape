@@ -3,31 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Art Opportunities Explorer</title>
+    <title>Art Opportunities - Comprehensive Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .deadline-urgent { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .field-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
+<body class="bg-gray-50 text-gray-900 min-h-screen">
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center space-x-8">
-                    <h1 class="text-xl font-semibold tracking-tight text-gray-900">Art Opportunities</h1>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-br from-purple-600 to-blue-600 p-2 rounded-lg">
+                            <i data-lucide="palette" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight text-gray-900">Art Opportunities</h1>
+                            <p class="text-xs text-gray-500">AI-Powered Discovery with 50+ Fields</p>
+                        </div>
+                    </div>
                     <div class="flex items-center space-x-2">
                         <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm text-gray-600">Live from Supabase</span>
+                        <span class="text-sm text-gray-600">Live Data</span>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-600">
-                        <span id="totalCount" class="font-semibold">0</span> opportunities
-                    </span>
+                    <div class="text-sm text-gray-600 space-x-4">
+                        <span><span id="totalCount" class="font-bold text-gray-900">0</span> opportunities</span>
+                        <span class="text-orange-600"><span id="urgentCount" class="font-bold">0</span> closing soon</span>
+                        <span class="text-purple-600"><span id="fieldAvg" class="font-bold">0</span> avg fields</span>
+                    </div>
                     <button onclick="refreshData()" class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
                         <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                     </button>
@@ -51,141 +79,165 @@
                     <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <button onclick="connectSupabase()" class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                <button onclick="connectSupabase()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity">
                     Connect
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Filters Sidebar -->
-            <aside class="w-full lg:w-80 space-y-6">
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 tracking-tight">Filters</h2>
+    <!-- Detail Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="modalTitle" class="text-2xl font-bold mb-2">Opportunity Details</h2>
+                        <p id="modalOrg" class="text-purple-100"></p>
+                    </div>
+                    <button onclick="closeModal()" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)] scrollbar-thin">
+                <div id="modalContent" class="space-y-6">
+                    <!-- Content will be dynamically inserted -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Advanced Filters Sidebar -->
+            <aside class="w-full lg:w-80 space-y-4">
+                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i data-lucide="filter" class="w-4 h-4 mr-2"></i>
+                        Advanced Filters
+                    </h2>
                     
                     <!-- Search -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Search</label>
                         <div class="relative">
-                            <input type="text" id="searchInput" placeholder="Search opportunities..." 
+                            <input type="text" id="searchInput" placeholder="Search all fields..." 
                                    onkeyup="filterOpportunities()"
-                                   class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                   class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
                         </div>
                     </div>
 
-                    <!-- Sources -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Sources</label>
-                        <div class="space-y-2" id="sourceFilters">
-                            <!-- Will be populated dynamically -->
-                        </div>
+                    <!-- Opportunity Type Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Type</label>
+                        <select id="typeFilter" onchange="filterOpportunities()" 
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">All Types</option>
+                            <option value="Exhibition">Exhibition</option>
+                            <option value="Fair">Art Fair</option>
+                            <option value="Grant">Grant</option>
+                            <option value="Residency">Residency</option>
+                            <option value="Competition">Competition</option>
+                        </select>
                     </div>
 
-                    <!-- Fee Range -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Entry Fees</label>
+                    <!-- Fee Range Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Application Fee</label>
+                        <select id="feeFilter" onchange="filterOpportunities()" 
+                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">Any Fee</option>
+                            <option value="free">Free</option>
+                            <option value="0-25">Under $25</option>
+                            <option value="25-50">$25 - $50</option>
+                            <option value="50-100">$50 - $100</option>
+                            <option value="100+">Over $100</option>
+                        </select>
+                    </div>
+
+                    <!-- Location Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Location</label>
+                        <input type="text" id="locationFilter" placeholder="City or State..." 
+                               onkeyup="filterOpportunities()"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <!-- Indoor/Outdoor Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Venue Type</label>
                         <div class="space-y-2">
                             <label class="flex items-center">
-                                <input type="radio" name="fees" value="all" checked onchange="filterOpportunities()" 
-                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                <span class="ml-3 text-sm text-gray-700">Any amount</span>
+                                <input type="checkbox" id="indoorFilter" onchange="filterOpportunities()" class="rounded text-purple-600">
+                                <span class="ml-2 text-sm">Indoor</span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" name="fees" value="free" onchange="filterOpportunities()"
-                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                <span class="ml-3 text-sm text-gray-700">Free only</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="fees" value="under25" onchange="filterOpportunities()"
-                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                <span class="ml-3 text-sm text-gray-700">Under $25</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="fees" value="under50" onchange="filterOpportunities()"
-                                       class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
-                                <span class="ml-3 text-sm text-gray-700">Under $50</span>
+                                <input type="checkbox" id="outdoorFilter" onchange="filterOpportunities()" class="rounded text-purple-600">
+                                <span class="ml-2 text-sm">Outdoor</span>
                             </label>
                         </div>
                     </div>
 
-                    <!-- Hide Expired -->
-                    <div class="mb-6">
-                        <label class="flex items-center">
-                            <input type="checkbox" id="hideExpired" onchange="filterOpportunities()" 
-                                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <span class="ml-3 text-sm text-gray-700">Hide expired</span>
-                        </label>
+                    <!-- Amenities Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Amenities</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="wifiFilter" onchange="filterOpportunities()" class="rounded text-purple-600">
+                                <span class="ml-2 text-sm">WiFi Available</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="electricityFilter" onchange="filterOpportunities()" class="rounded text-purple-600">
+                                <span class="ml-2 text-sm">Electricity Included</span>
+                            </label>
+                        </div>
                     </div>
 
-                    <button onclick="clearFilters()" class="w-full bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
-                        Clear all filters
+                    <!-- Platform Filter -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Source Platform</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" value="zapplication" onchange="filterOpportunities()" class="platform-filter rounded text-purple-600">
+                                <span class="ml-2 text-sm">Zapplication</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="cafe" onchange="filterOpportunities()" class="platform-filter rounded text-purple-600">
+                                <span class="ml-2 text-sm">CAFE</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" value="artwork_archive" onchange="filterOpportunities()" class="platform-filter rounded text-purple-600">
+                                <span class="ml-2 text-sm">Artwork Archive</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Reset Filters -->
+                    <button onclick="resetFilters()" class="w-full py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg transition-colors">
+                        Reset All Filters
                     </button>
-                </div>
-
-                <!-- Stats -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Statistics</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Total</span>
-                            <span class="font-medium" id="statTotal">0</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Active</span>
-                            <span class="font-medium text-green-600" id="statActive">0</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Free Entry</span>
-                            <span class="font-medium" id="statFree">0</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">With Location</span>
-                            <span class="font-medium" id="statLocation">0</span>
-                        </div>
-                    </div>
                 </div>
             </aside>
 
-            <!-- Main Content -->
+            <!-- Main Content Area -->
             <main class="flex-1">
-                <!-- Results Header -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-semibold text-gray-900 tracking-tight">Opportunities</h2>
-                        <p class="text-sm text-gray-600 mt-1">
-                            <span id="filteredCount">0</span> results
-                        </p>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-gray-900">Opportunities</h2>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="sortBy('deadline')" class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Sort by Deadline
+                            </button>
+                            <button onclick="sortBy('fee')" class="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                                Sort by Fee
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-4 mt-4 sm:mt-0">
-                        <select id="sortBy" onchange="sortOpportunities()" 
-                                class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="deadline">Deadline: Soonest</option>
-                            <option value="newest">Recently added</option>
-                            <option value="title">Title: A-Z</option>
-                        </select>
+                    <div id="opportunitiesContainer" class="space-y-4">
+                        <!-- Opportunities will be loaded here -->
                     </div>
-                </div>
-
-                <!-- Loading State -->
-                <div id="loading" class="flex items-center justify-center py-12">
-                    <div class="text-center">
-                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                        <p class="mt-4 text-gray-600">Loading opportunities...</p>
-                    </div>
-                </div>
-
-                <!-- Grid -->
-                <div id="opportunitiesGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Cards will be inserted here -->
-                </div>
-
-                <!-- No Results -->
-                <div id="noResults" class="hidden text-center py-12">
-                    <i data-lucide="inbox" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
-                    <p class="text-gray-600">No opportunities match your filters</p>
                 </div>
             </main>
         </div>
@@ -194,63 +246,44 @@
     <script>
         let supabase = null;
         let opportunities = [];
-        let filteredOpportunities = [];
+        let sortField = 'deadline';
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check for saved credentials
-            const savedUrl = localStorage.getItem('supabaseUrl');
-            const savedKey = localStorage.getItem('supabaseKey');
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            checkSupabaseConfig();
+        });
+
+        // Check for saved Supabase config
+        function checkSupabaseConfig() {
+            const url = localStorage.getItem('supabaseUrl');
+            const key = localStorage.getItem('supabaseKey');
             
-            if (savedUrl && savedKey) {
-                document.getElementById('supabaseUrl').value = savedUrl;
-                document.getElementById('supabaseKey').value = savedKey;
-                connectSupabase();
+            if (url && key) {
+                supabase = window.supabase.createClient(url, key);
+                loadOpportunities();
             } else {
                 document.getElementById('configModal').classList.remove('hidden');
             }
-            
-            // Initialize Lucide icons
-            lucide.createIcons();
-        });
+        }
 
         // Connect to Supabase
-        async function connectSupabase() {
+        function connectSupabase() {
             const url = document.getElementById('supabaseUrl').value;
             const key = document.getElementById('supabaseKey').value;
             
-            if (!url || !key) {
-                alert('Please enter both URL and key');
-                return;
-            }
-            
-            try {
-                supabase = window.supabase.createClient(url, key);
-                
-                // Test connection
-                const { data, error } = await supabase
-                    .from('opportunities')
-                    .select('count', { count: 'exact', head: true });
-                
-                if (error) throw error;
-                
-                // Save credentials
+            if (url && key) {
                 localStorage.setItem('supabaseUrl', url);
                 localStorage.setItem('supabaseKey', key);
-                
-                // Hide modal and load data
+                supabase = window.supabase.createClient(url, key);
                 document.getElementById('configModal').classList.add('hidden');
                 loadOpportunities();
-                
-            } catch (error) {
-                alert('Connection failed: ' + error.message);
             }
         }
 
-        // Load opportunities from Supabase
+        // Load opportunities from database
         async function loadOpportunities() {
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('opportunitiesGrid').innerHTML = '';
+            if (!supabase) return;
             
             try {
                 const { data, error } = await supabase
@@ -261,316 +294,327 @@
                 if (error) throw error;
                 
                 opportunities = data || [];
-                document.getElementById('totalCount').textContent = opportunities.length;
-                
-                // Build source filters
-                buildSourceFilters();
-                
-                // Update stats
+                displayOpportunities(opportunities);
                 updateStats();
-                
-                // Initial filter
-                filterOpportunities();
-                
             } catch (error) {
                 console.error('Error loading opportunities:', error);
-                alert('Failed to load opportunities: ' + error.message);
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('opportunitiesContainer').innerHTML = 
+                    '<div class="text-center py-8 text-gray-500">Error loading opportunities. Check console for details.</div>';
             }
         }
 
-        // Build source filter checkboxes
-        function buildSourceFilters() {
-            const sources = [...new Set(opportunities.map(o => o.source_platform))].filter(Boolean);
-            const container = document.getElementById('sourceFilters');
+        // Display opportunities
+        function displayOpportunities(opps) {
+            const container = document.getElementById('opportunitiesContainer');
             
-            container.innerHTML = sources.map(source => `
-                <label class="flex items-center">
-                    <input type="checkbox" value="${source}" checked onchange="filterOpportunities()"
-                           class="source-filter w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                    <span class="ml-3 text-sm text-gray-700">${source.toUpperCase()}</span>
-                </label>
-            `).join('');
-        }
-
-        // Filter opportunities
-        function filterOpportunities() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const hideExpired = document.getElementById('hideExpired').checked;
-            const feeFilter = document.querySelector('input[name="fees"]:checked').value;
-            const selectedSources = Array.from(document.querySelectorAll('.source-filter:checked')).map(cb => cb.value);
-            
-            filteredOpportunities = opportunities.filter(opp => {
-                // Source filter
-                if (selectedSources.length > 0 && !selectedSources.includes(opp.source_platform)) {
-                    return false;
-                }
-                
-                // Search filter
-                if (searchTerm) {
-                    const searchableText = [
-                        opp.title,
-                        opp.organization,
-                        opp.description,
-                        opp.extras?.enriched_description,
-                        opp.extras?.artist_summary,
-                        opp.location_raw,
-                        opp.location_city,
-                        opp.location_state
-                    ].filter(Boolean).join(' ').toLowerCase();
-                    
-                    if (!searchableText.includes(searchTerm)) {
-                        return false;
-                    }
-                }
-                
-                // Expired filter
-                if (hideExpired && opp.deadline_parsed) {
-                    const deadline = new Date(opp.deadline_parsed);
-                    if (deadline < new Date()) {
-                        return false;
-                    }
-                }
-                
-                // Fee filter
-                if (feeFilter !== 'all') {
-                    const feeCategory = opp.extras?.fee_category || 'unknown';
-                    
-                    if (feeFilter === 'free' && feeCategory !== 'free') return false;
-                    if (feeFilter === 'under25' && !['free', 'under_25'].includes(feeCategory)) return false;
-                    if (feeFilter === 'under50' && !['free', 'under_25', '25_to_50'].includes(feeCategory)) return false;
-                }
-                
-                return true;
-            });
-            
-            document.getElementById('filteredCount').textContent = filteredOpportunities.length;
-            sortOpportunities();
-        }
-
-        // Sort opportunities
-        function sortOpportunities() {
-            const sortBy = document.getElementById('sortBy').value;
-            
-            filteredOpportunities.sort((a, b) => {
-                switch(sortBy) {
-                    case 'deadline':
-                        const deadlineA = a.deadline_parsed || '9999-12-31';
-                        const deadlineB = b.deadline_parsed || '9999-12-31';
-                        return deadlineA.localeCompare(deadlineB);
-                    case 'newest':
-                        return b.created_at.localeCompare(a.created_at);
-                    case 'title':
-                        return (a.title || '').localeCompare(b.title || '');
-                    default:
-                        return 0;
-                }
-            });
-            
-            renderOpportunities();
-        }
-
-        // Render opportunity cards
-        function renderOpportunities() {
-            const grid = document.getElementById('opportunitiesGrid');
-            const noResults = document.getElementById('noResults');
-            
-            if (filteredOpportunities.length === 0) {
-                grid.innerHTML = '';
-                noResults.classList.remove('hidden');
+            if (opps.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No opportunities found</div>';
                 return;
             }
             
-            noResults.classList.add('hidden');
-            
-            grid.innerHTML = filteredOpportunities.map(opp => {
-                const deadline = formatDeadline(opp.deadline_parsed, opp.deadline_raw);
-                const location = formatLocation(opp);
-                const fee = formatFee(opp);
-                const artistSummary = opp.extras?.artist_summary || getDescription(opp);
-                const isExpired = isDeadlineExpired(opp.deadline_parsed);
+            container.innerHTML = opps.map(opp => {
+                const deadlineDate = opp.deadline_parsed ? new Date(opp.deadline_parsed) : null;
+                const daysUntil = deadlineDate ? Math.ceil((deadlineDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
+                const isUrgent = daysUntil && daysUntil <= 7;
+                
+                // Count extracted fields
+                const extractedFields = Object.keys(opp).filter(key => 
+                    opp[key] !== null && 
+                    !['id', 'created_at', 'extraction_timestamp', 'extraction_confidence', 'source', 'source_platform', 'url'].includes(key)
+                ).length;
                 
                 return `
-                    <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:border-gray-300 ${isExpired ? 'opacity-60' : ''}">
-                        <div class="flex items-start justify-between mb-2">
-                            <h3 class="text-lg font-semibold text-gray-900 tracking-tight line-clamp-2">
-                                ${opp.title || 'Untitled Opportunity'}
-                            </h3>
-                        </div>
-                        ${opp.organization ? `
-                            <p class="text-sm text-gray-600 mb-3">${opp.organization}</p>
-                        ` : ''}
-                        
-                        <div class="flex flex-wrap gap-3 mb-4">
-                            ${deadline ? `
-                                <div class="flex items-center text-xs ${isExpired ? 'text-red-600' : 'text-gray-600'}">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5 mr-1.5"></i>
-                                    ${deadline}
-                                </div>
-                            ` : ''}
-                            ${fee ? `
-                                <div class="flex items-center text-xs ${fee === 'Free' ? 'text-green-600' : 'text-gray-600'}">
-                                    <i data-lucide="${fee === 'Free' ? 'gift' : 'dollar-sign'}" class="w-3.5 h-3.5 mr-1.5"></i>
-                                    ${fee}
-                                </div>
-                            ` : ''}
-                            ${location ? `
-                                <div class="flex items-center text-xs text-gray-600">
-                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 mr-1.5"></i>
-                                    ${location}
-                                </div>
-                            ` : ''}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer" onclick="showDetail('${opp.id}')">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                    ${opp.title || 'Untitled Opportunity'}
+                                </h3>
+                                <p class="text-sm text-gray-600">
+                                    ${opp.organization || 'Organization not specified'}
+                                </p>
+                            </div>
+                            <div class="text-right ml-4">
+                                ${deadlineDate ? `
+                                    <div class="${isUrgent ? 'text-red-600 font-semibold deadline-urgent' : 'text-gray-700'}">
+                                        ${daysUntil > 0 ? `${daysUntil} days left` : 'Expired'}
+                                    </div>
+                                    <div class="text-xs text-gray-500">${opp.deadline_raw || ''}</div>
+                                ` : '<div class="text-sm text-gray-400">No deadline</div>'}
+                            </div>
                         </div>
                         
-                        <div class="mb-4">
-                            <p class="text-sm text-gray-700 leading-relaxed">${artistSummary}</p>
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded">
-                                ${opp.source_platform?.toUpperCase() || 'UNKNOWN'}
-                            </span>
-                            ${opp.extras?.opportunity_types?.slice(0, 2).map(type => `
-                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                                    ${type}
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            ${opp.opportunity_type ? `
+                                <span class="field-badge bg-purple-100 text-purple-700">
+                                    ${opp.opportunity_type}
                                 </span>
-                            `).join('') || ''}
+                            ` : ''}
+                            ${opp.application_fee ? `
+                                <span class="field-badge bg-green-100 text-green-700">
+                                    Fee: ${opp.application_fee}
+                                </span>
+                            ` : ''}
+                            ${opp.location_city && opp.location_state ? `
+                                <span class="field-badge bg-blue-100 text-blue-700">
+                                    <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i>
+                                    ${opp.location_city}, ${opp.location_state}
+                                </span>
+                            ` : ''}
+                            ${opp.indoor_outdoor ? `
+                                <span class="field-badge bg-yellow-100 text-yellow-700">
+                                    ${opp.indoor_outdoor}
+                                </span>
+                            ` : ''}
+                            ${opp.event_dates ? `
+                                <span class="field-badge bg-indigo-100 text-indigo-700">
+                                    <i data-lucide="calendar" class="w-3 h-3 mr-1"></i>
+                                    ${opp.event_dates}
+                                </span>
+                            ` : ''}
                         </div>
-                        <button onclick="window.open('${opp.url}', '_blank')" 
-                                class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-                            View Details
-                        </button>
+                        
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <div class="flex items-center space-x-4">
+                                <span>
+                                    <i data-lucide="database" class="w-3 h-3 inline mr-1"></i>
+                                    ${extractedFields} fields
+                                </span>
+                                <span>
+                                    <i data-lucide="globe" class="w-3 h-3 inline mr-1"></i>
+                                    ${opp.source_platform || opp.source || 'unknown'}
+                                </span>
+                            </div>
+                            <a href="${opp.url}" target="_blank" class="text-blue-600 hover:text-blue-800" onclick="event.stopPropagation()">
+                                View Source →
+                            </a>
+                        </div>
                     </div>
                 `;
             }).join('');
             
-            // Re-initialize Lucide icons
             lucide.createIcons();
         }
 
-        // Helper functions
-        function formatDeadline(parsed, raw) {
-            if (!parsed && !raw) return null;
+        // Show detail modal
+        function showDetail(id) {
+            const opp = opportunities.find(o => o.id === id);
+            if (!opp) return;
             
-            if (parsed) {
-                const date = new Date(parsed);
-                const options = { month: 'short', day: 'numeric', year: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
+            document.getElementById('modalTitle').textContent = opp.title || 'Opportunity Details';
+            document.getElementById('modalOrg').textContent = opp.organization || 'Organization not specified';
+            
+            const content = document.getElementById('modalContent');
+            
+            // Group fields by category
+            const categories = {
+                'Basic Information': ['opportunity_type', 'description', 'eligibility'],
+                'Dates & Deadlines': ['deadline_raw', 'deadline_parsed', 'early_deadline', 'regular_deadline', 'late_deadline', 'notification_date', 'event_dates'],
+                'Fees & Costs': ['application_fee', 'booth_fee_raw', 'additional_fees', 'commission_percentage', 'refund_policy', 'insurance_required', 'insurance_amount'],
+                'Location & Venue': ['location_raw', 'location_city', 'location_state', 'venue_name', 'venue_address', 'parking_info', 'indoor_outdoor'],
+                'Event Details': ['event_hours', 'move_in_times', 'booth_options', 'media_categories', 'expected_attendance', 'number_of_artists', 'years_running'],
+                'Requirements': ['artist_requirements', 'portfolio_requirements', 'number_of_images_required', 'image_format_requirements'],
+                'Amenities': ['wifi_available', 'electricity_included', 'artist_amenities', 'hotel_discounts', 'marketing_support_provided'],
+                'Contact': ['contact_email', 'contact_phone', 'website_url']
+            };
+            
+            let html = '';
+            
+            for (const [category, fields] of Object.entries(categories)) {
+                const categoryFields = fields.filter(f => opp[f] !== null && opp[f] !== undefined);
+                if (categoryFields.length === 0) continue;
+                
+                html += `
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">${category}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                `;
+                
+                for (const field of categoryFields) {
+                    const value = opp[field];
+                    const displayName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    html += `
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="text-xs font-semibold text-gray-500 uppercase mb-1">${displayName}</div>
+                            <div class="text-sm text-gray-900">
+                                ${typeof value === 'boolean' ? (value ? '✓ Yes' : '✗ No') : (value || 'N/A')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
             }
             
-            return raw;
+            html += `
+                <div class="pt-4 border-t">
+                    <a href="${opp.url}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i data-lucide="external-link" class="w-4 h-4 mr-2"></i>
+                        View Original Listing
+                    </a>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            document.getElementById('detailModal').classList.remove('hidden');
+            lucide.createIcons();
         }
 
-        function formatLocation(opp) {
-            // Check for enriched location
-            if (opp.extras?.location_enriched) {
-                const loc = opp.extras.location_enriched;
-                if (loc.city && loc.state_code) {
-                    return `${loc.city}, ${loc.state_code}`;
-                }
-                if (loc.city && loc.country) {
-                    return `${loc.city}, ${loc.country}`;
-                }
-                if (loc.display_name) {
-                    return loc.display_name;
-                }
-            }
-            
-            // Fallback to raw location
-            if (opp.location_city || opp.location_state) {
-                const parts = [];
-                if (opp.location_city) parts.push(opp.location_city);
-                if (opp.location_state) parts.push(opp.location_state);
-                return parts.join(', ');
-            }
-            
-            return opp.location_raw || null;
+        // Close modal
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
         }
 
-        function formatFee(opp) {
-            const feeCategory = opp.extras?.fee_category;
+        // Filter opportunities
+        function filterOpportunities() {
+            let filtered = [...opportunities];
             
-            if (feeCategory === 'free') return 'Free';
-            if (feeCategory === 'under_25') return 'Under $25';
-            if (feeCategory === '25_to_50') return '$25-50';
-            if (feeCategory === '50_to_100') return '$50-100';
-            if (feeCategory === 'over_100') return 'Over $100';
-            
-            if (opp.fee_amount) return `$${opp.fee_amount}`;
-            if (opp.fee_raw) return opp.fee_raw;
-            
-            return null;
-        }
-
-        function getDescription(opp) {
-            // This is now just a fallback when there's no AI summary
-            // Keep it shorter since it's not the primary content
-            
-            // Prefer enriched description
-            if (opp.extras?.enriched_description) {
-                const maxLength = 250;
-                if (opp.extras.enriched_description.length > maxLength) {
-                    return opp.extras.enriched_description.substring(0, maxLength) + '...';
-                }
-                return opp.extras.enriched_description;
+            // Search filter
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(opp => 
+                    JSON.stringify(opp).toLowerCase().includes(searchTerm)
+                );
             }
             
-            // Fallback to regular description
-            if (opp.description) {
-                const maxLength = 250;
-                // Clean up any HTML or excessive whitespace
-                const cleaned = opp.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-                if (cleaned.length > maxLength) {
-                    return cleaned.substring(0, maxLength) + '...';
-                }
-                return cleaned;
+            // Type filter
+            const typeFilter = document.getElementById('typeFilter').value;
+            if (typeFilter) {
+                filtered = filtered.filter(opp => opp.opportunity_type === typeFilter);
             }
             
-            return 'No description available. Visit the opportunity page for more details.';
+            // Fee filter
+            const feeFilter = document.getElementById('feeFilter').value;
+            if (feeFilter) {
+                filtered = filtered.filter(opp => {
+                    const fee = opp.application_fee;
+                    if (!fee) return feeFilter === 'free';
+                    
+                    const amount = parseInt(fee.replace(/\D/g, ''));
+                    switch(feeFilter) {
+                        case 'free': return amount === 0;
+                        case '0-25': return amount > 0 && amount <= 25;
+                        case '25-50': return amount > 25 && amount <= 50;
+                        case '50-100': return amount > 50 && amount <= 100;
+                        case '100+': return amount > 100;
+                        default: return true;
+                    }
+                });
+            }
+            
+            // Location filter
+            const locationFilter = document.getElementById('locationFilter').value.toLowerCase();
+            if (locationFilter) {
+                filtered = filtered.filter(opp => 
+                    (opp.location_city && opp.location_city.toLowerCase().includes(locationFilter)) ||
+                    (opp.location_state && opp.location_state.toLowerCase().includes(locationFilter))
+                );
+            }
+            
+            // Indoor/Outdoor filter
+            const indoorFilter = document.getElementById('indoorFilter').checked;
+            const outdoorFilter = document.getElementById('outdoorFilter').checked;
+            if (indoorFilter || outdoorFilter) {
+                filtered = filtered.filter(opp => {
+                    if (!opp.indoor_outdoor) return false;
+                    const venue = opp.indoor_outdoor.toLowerCase();
+                    if (indoorFilter && venue.includes('indoor')) return true;
+                    if (outdoorFilter && venue.includes('outdoor')) return true;
+                    return false;
+                });
+            }
+            
+            // Amenities filters
+            if (document.getElementById('wifiFilter').checked) {
+                filtered = filtered.filter(opp => opp.wifi_available === true);
+            }
+            if (document.getElementById('electricityFilter').checked) {
+                filtered = filtered.filter(opp => opp.electricity_included === true);
+            }
+            
+            // Platform filter
+            const platformFilters = Array.from(document.querySelectorAll('.platform-filter:checked')).map(el => el.value);
+            if (platformFilters.length > 0) {
+                filtered = filtered.filter(opp => 
+                    platformFilters.includes(opp.source_platform) || platformFilters.includes(opp.source)
+                );
+            }
+            
+            displayOpportunities(filtered);
         }
 
-        function isDeadlineExpired(deadlineParsed) {
-            if (!deadlineParsed) return false;
-            return new Date(deadlineParsed) < new Date();
+        // Sort opportunities
+        function sortBy(field) {
+            sortField = field;
+            
+            opportunities.sort((a, b) => {
+                if (field === 'deadline') {
+                    const dateA = a.deadline_parsed ? new Date(a.deadline_parsed) : new Date('2099-12-31');
+                    const dateB = b.deadline_parsed ? new Date(b.deadline_parsed) : new Date('2099-12-31');
+                    return dateA - dateB;
+                } else if (field === 'fee') {
+                    const feeA = a.application_fee ? parseInt(a.application_fee.replace(/\D/g, '')) : 9999;
+                    const feeB = b.application_fee ? parseInt(b.application_fee.replace(/\D/g, '')) : 9999;
+                    return feeA - feeB;
+                }
+                return 0;
+            });
+            
+            filterOpportunities();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('feeFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            document.getElementById('indoorFilter').checked = false;
+            document.getElementById('outdoorFilter').checked = false;
+            document.getElementById('wifiFilter').checked = false;
+            document.getElementById('electricityFilter').checked = false;
+            document.querySelectorAll('.platform-filter').forEach(el => el.checked = false);
+            
+            displayOpportunities(opportunities);
         }
 
         // Update statistics
         function updateStats() {
-            const now = new Date();
+            document.getElementById('totalCount').textContent = opportunities.length;
             
-            const active = opportunities.filter(o => {
-                if (!o.deadline_parsed) return true;
-                return new Date(o.deadline_parsed) >= now;
+            const urgent = opportunities.filter(opp => {
+                if (!opp.deadline_parsed) return false;
+                const days = Math.ceil((new Date(opp.deadline_parsed) - new Date()) / (1000 * 60 * 60 * 24));
+                return days > 0 && days <= 7;
             }).length;
+            document.getElementById('urgentCount').textContent = urgent;
             
-            const free = opportunities.filter(o => 
-                o.extras?.fee_category === 'free'
-            ).length;
+            const avgFields = opportunities.reduce((sum, opp) => {
+                const fields = Object.keys(opp).filter(key => 
+                    opp[key] !== null && 
+                    !['id', 'created_at', 'extraction_timestamp', 'extraction_confidence', 'source', 'source_platform', 'url'].includes(key)
+                ).length;
+                return sum + fields;
+            }, 0) / Math.max(opportunities.length, 1);
             
-            const withLocation = opportunities.filter(o => 
-                o.location_raw || o.location_city || o.extras?.location_enriched
-            ).length;
-            
-            document.getElementById('statTotal').textContent = opportunities.length;
-            document.getElementById('statActive').textContent = active;
-            document.getElementById('statFree').textContent = free;
-            document.getElementById('statLocation').textContent = withLocation;
-        }
-
-        // Clear filters
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('hideExpired').checked = false;
-            document.querySelector('input[name="fees"][value="all"]').checked = true;
-            document.querySelectorAll('.source-filter').forEach(cb => cb.checked = true);
-            filterOpportunities();
+            document.getElementById('fieldAvg').textContent = Math.round(avgFields);
         }
 
         // Refresh data
         function refreshData() {
             loadOpportunities();
         }
+
+        // Handle Escape key for modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
     </script>
 </body>
 </html>
