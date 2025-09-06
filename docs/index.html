@@ -389,9 +389,9 @@
             const typeColor = typeColors[opp.opportunity_type] || typeColors['other'];
             
             return `
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden card-hover cursor-pointer" 
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden card-hover cursor-pointer h-full flex flex-col" 
                      onclick='showDetail(${JSON.stringify(opp).replace(/'/g, "&apos;")})'>
-                    <div class="p-6">
+                    <div class="p-6 flex-grow flex flex-col">
                         <div class="flex items-start justify-between mb-3">
                             <span class="tag ${typeColor}">${typeLabel}</span>
                             ${daysUntil && daysUntil <= 7 ? 
@@ -435,13 +435,13 @@
                         </div>
                         
                         ${opp.description && opp.description !== opp.title ? `
-                            <p class="text-sm text-gray-500 mt-4 line-clamp-2">
+                            <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-2">
                                 ${opp.description.replace(opp.title, '').substring(0, 150).trim()}${opp.description.length > 150 ? '...' : ''}
                             </p>
                         ` : ''}
                     </div>
                     
-                    <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
+                    <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 mt-auto">
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-500 flex items-center">
                                 <span class="text-lg mr-1">${platformColors[opp.source_platform] || platformColors['other']}</span>
@@ -459,6 +459,15 @@
         function showDetail(opp) {
             const modal = document.getElementById('detailModal');
             const content = document.getElementById('modalContent');
+            
+            // Add escape key listener
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeDetail();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
             
             const deadline = opp.deadline ? new Date(opp.deadline) : null;
             const fee = opp.application_fee ? 
@@ -528,12 +537,28 @@
                                     <div>
                                         <h3 class="font-semibold text-gray-900 mb-3">Additional Information</h3>
                                         <div class="space-y-2">
-                                            ${Object.entries(extras).map(([key, value]) => `
-                                                <div class="flex">
-                                                    <span class="font-medium text-gray-700 mr-2">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
-                                                    <span class="text-gray-600">${value}</span>
-                                                </div>
-                                            `).join('')}
+                                            ${Object.entries(extras).map(([key, value]) => {
+                                                // Skip if value is null, undefined, or an object
+                                                if (value === null || value === undefined) return '';
+                                                if (typeof value === 'object') {
+                                                    // If it's an object with a 'value' property, use that
+                                                    if (value.value !== undefined) {
+                                                        value = value.value;
+                                                    } else {
+                                                        // Skip complex objects
+                                                        return '';
+                                                    }
+                                                }
+                                                // Only show if value is meaningful
+                                                if (value === '' || value === 'null') return '';
+                                                
+                                                return `
+                                                    <div class="flex">
+                                                        <span class="font-medium text-gray-700 mr-2">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span>
+                                                        <span class="text-gray-600">${value}</span>
+                                                    </div>
+                                                `;
+                                            }).filter(item => item !== '').join('')}
                                         </div>
                                     </div>
                                 ` : ''}
