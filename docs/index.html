@@ -138,9 +138,6 @@
                 <button onclick="filterLocation('online')" class="tag bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer">
                     🌐 Online Only
                 </button>
-                <button onclick="filterLocation('local')" class="tag bg-purple-100 text-purple-800 hover:bg-purple-200 cursor-pointer">
-                    📍 Local (Your Area)
-                </button>
             </div>
         </div>
 
@@ -575,10 +572,14 @@
                                 
                                 <a href="${opp.url}" target="_blank" rel="noopener noreferrer" 
                                    class="block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-3 rounded-lg font-medium hover:opacity-90 transition-opacity">
-                                    Apply Now →
+                                    ${opp.source_platform === 'artwork_archive' || opp.source_platform === 'showsubmit' ? 
+                                        'View Full Details →' : 'Apply Now →'}
                                 </a>
                                 
-                                <div class="text-xs text-gray-500 text-center">
+                                ${opp.source_platform === 'artwork_archive' || opp.source_platform === 'showsubmit' ? 
+                                    '<p class="text-xs text-gray-600 text-center mt-2 italic">Click "Apply" button on the opportunity page</p>' : ''}
+                                
+                                <div class="text-xs text-gray-500 text-center ${opp.source_platform === 'artwork_archive' || opp.source_platform === 'showsubmit' ? 'mt-3' : ''}">
                                     Source: ${opp.source_platform || 'Unknown'}<br>
                                     Last updated: ${opp.updated_at ? new Date(opp.updated_at).toLocaleDateString() : 'Unknown'}
                                 </div>
@@ -688,10 +689,6 @@
                     opp.location_state?.toLowerCase().includes('online') ||
                     opp.description?.toLowerCase().includes('online')
                 );
-            } else if (type === 'local') {
-                // This would need user location data to work properly
-                alert('Location-based filtering coming soon! For now, use the search to find opportunities in your area.');
-                return;
             }
             
             updateStats();
