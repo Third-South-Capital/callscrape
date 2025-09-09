@@ -479,9 +479,8 @@
             }).length;
             document.getElementById('thisWeek').textContent = thisWeek;
             
-            const free = opportunities.filter(o => 
-                !o.application_fee || o.application_fee === 0 || o.application_fee === '0'
-            ).length;
+            // Use extractFee to properly count free opportunities
+            const free = opportunities.filter(o => extractFee(o).amount === 0).length;
             document.getElementById('freeOpps').textContent = free;
             
             document.getElementById('resultsCount').textContent = filteredOpportunities.length;
@@ -607,6 +606,61 @@
             grid.innerHTML = filteredOpportunities.map(opp => createCard(opp)).join('');
         }
 
+        // Extract fee from all possible fee fields
+        function extractFee(opp) {
+            // Check all possible fee fields
+            const feeFields = [
+                'application_fee',
+                'submission_fee', 
+                'additional_fees',
+                'booth_fee',
+                'booth_fee_raw'
+            ];
+            
+            let maxFee = 0;
+            let feeSource = null;
+            
+            // Check direct fields
+            for (const field of feeFields) {
+                if (opp[field]) {
+                    let fee = 0;
+                    if (typeof opp[field] === 'number') {
+                        fee = opp[field];
+                    } else if (typeof opp[field] === 'string') {
+                        // Extract number from string like "$35" or "35.00"
+                        const match = opp[field].match(/\d+(?:\.\d{2})?/);
+                        if (match) {
+                            fee = parseFloat(match[0]);
+                        }
+                    }
+                    if (fee > maxFee) {
+                        maxFee = fee;
+                        feeSource = field;
+                    }
+                }
+            }
+            
+            // Also check enriched_metadata if available
+            try {
+                const extras = opp.extras ? (typeof opp.extras === 'string' ? JSON.parse(opp.extras) : opp.extras) : {};
+                if (extras.enriched_metadata?.fee_amount) {
+                    const enrichedFee = parseFloat(extras.enriched_metadata.fee_amount);
+                    if (enrichedFee > maxFee) {
+                        maxFee = enrichedFee;
+                        feeSource = 'enriched';
+                    }
+                }
+            } catch (e) {
+                // Ignore parsing errors
+            }
+            
+            return {
+                amount: maxFee,
+                display: maxFee > 0 ? `$${maxFee}` : 'Free',
+                source: feeSource
+            };
+        }
+
         function createCard(opp) {
             const deadline = opp.deadline ? new Date(opp.deadline) : null;
             const now = new Date();
@@ -615,11 +669,10 @@
             const urgentClass = daysUntil && daysUntil <= 7 ? 'deadline-soon' : '';
             const deadlineColor = daysUntil && daysUntil <= 7 ? 'text-red-600' : 'text-gray-600';
             
-            const fee = opp.application_fee ? 
-                (typeof opp.application_fee === 'number' ? `$${opp.application_fee}` : opp.application_fee) : 
-                'Free';
-            
-            const feeColor = fee === 'Free' ? 'text-green-600' : 'text-gray-600';
+            // Use the new extractFee function
+            const feeInfo = extractFee(opp);
+            const fee = feeInfo.display;
+            const feeColor = feeInfo.amount === 0 ? 'text-green-600' : 'text-gray-600';
             
             const location = [opp.location_city, opp.location_state, opp.location_country]
                 .filter(Boolean)
@@ -654,11 +707,14 @@
             
             const typeColor = typeColors[opp.opportunity_type] || typeColors['other'];
             
-            // Parse enriched metadata for badges
+            // Parse enriched metadata for badges AND stored summary
             let enrichedMetadata = {};
+            let storedSummary = null;
             try {
                 const extras = opp.extras ? (typeof opp.extras === 'string' ? JSON.parse(opp.extras) : opp.extras) : {};
                 enrichedMetadata = extras.enriched_metadata || {};
+                // Check for stored summary
+                storedSummary = enrichedMetadata.description_summary || null;
             } catch (e) {
                 enrichedMetadata = {};
             }
@@ -708,6 +764,15 @@
                                 Application: ${fee}
                             </div>
                             
+                            ${opp.eligibility ? `
+                                <div class="flex items-start text-gray-600">
+                                    <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-xs line-clamp-2">${opp.eligibility}</span>
+                                </div>
+                            ` : ''}
+                            
                             ${enrichedMetadata.has_compensation || enrichedMetadata.is_juried ? `
                                 <div class="flex flex-wrap gap-1 pt-2">
                                     ${enrichedMetadata.has_compensation ? `
@@ -726,7 +791,7 @@
                         
                         ${opp.description && opp.description !== opp.title ? `
                             <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-2 leading-relaxed">
-                                ${summarizeDescription(opp.description, opp.title)}
+                                ${storedSummary || summarizeDescription(opp.description, opp.title)}
                             </p>
                         ` : ''}
                     </div>
@@ -767,9 +832,9 @@
             document.addEventListener('keydown', escapeHandler);
             
             const deadline = opp.deadline ? new Date(opp.deadline) : null;
-            const fee = opp.application_fee ? 
-                (typeof opp.application_fee === 'number' ? `$${opp.application_fee}` : opp.application_fee) : 
-                'Free';
+            // Use extractFee for consistent fee display
+            const feeInfo = extractFee(opp);
+            const fee = feeInfo.display;
             
             const location = [opp.location_city, opp.location_state, opp.location_country]
                 .filter(Boolean)
@@ -821,7 +886,7 @@
                                         ${cleanDescription(opp.description).length > 500 ? `
                                             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                                                 <h4 class="font-medium text-blue-900 mb-2">Summary</h4>
-                                                <p class="text-blue-800">${summarizeDescription(opp.description, opp.title)}</p>
+                                                <p class="text-blue-800">${enrichedMetadata.description_summary || summarizeDescription(opp.description, opp.title)}</p>
                                             </div>
                                             <details class="group">
                                                 <summary class="cursor-pointer text-purple-600 hover:text-purple-800 font-medium mb-2">
@@ -835,10 +900,24 @@
                                     </div>
                                 ` : ''}
                                 
-                                ${opp.eligibility_requirements ? `
+                                ${opp.eligibility ? `
                                     <div>
-                                        <h3 class="font-semibold text-gray-900 mb-3">Eligibility</h3>
-                                        <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.eligibility_requirements)}</p>
+                                        <h3 class="font-semibold text-gray-900 mb-3">Eligibility Requirements</h3>
+                                        <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.eligibility)}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${opp.prizes ? `
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900 mb-3">Prizes & Awards</h3>
+                                        <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.prizes)}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                ${opp.submission_requirements ? `
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900 mb-3">Submission Requirements</h3>
+                                        <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.submission_requirements)}</p>
                                     </div>
                                 ` : ''}
                                 
@@ -950,10 +1029,34 @@
                                         </div>
                                     ` : ''}
                                     
-                                    ${opp.event_dates ? `
+                                    ${opp.event_dates || opp.start_date || opp.end_date ? `
                                         <div>
                                             <div class="text-sm text-gray-500 mb-1">Event Dates</div>
-                                            <div class="font-medium text-gray-900">${opp.event_dates}</div>
+                                            <div class="font-medium text-gray-900">
+                                                ${opp.event_dates || 
+                                                  (opp.start_date && opp.end_date ? 
+                                                    `${new Date(opp.start_date).toLocaleDateString()} - ${new Date(opp.end_date).toLocaleDateString()}` :
+                                                    opp.start_date ? `Starts ${new Date(opp.start_date).toLocaleDateString()}` :
+                                                    opp.end_date ? `Ends ${new Date(opp.end_date).toLocaleDateString()}` : ''
+                                                  )
+                                                }
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${opp.venue_type || enrichedMetadata.venue_setting ? `
+                                        <div>
+                                            <div class="text-sm text-gray-500 mb-1">Venue Type</div>
+                                            <div class="font-medium text-gray-900">
+                                                ${opp.venue_type || enrichedMetadata.venue_setting || 'TBD'}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    
+                                    ${opp.entry_limit ? `
+                                        <div>
+                                            <div class="text-sm text-gray-500 mb-1">Entry Limit</div>
+                                            <div class="font-medium text-gray-900">${opp.entry_limit}</div>
                                         </div>
                                     ` : ''}
                                 </div>
@@ -1014,9 +1117,10 @@
                     return false;
                 }
                 
-                // Fee filter
+                // Fee filter (using extractFee for accurate fee detection)
                 if (feeFilter) {
-                    const fee = parseFloat(opp.application_fee) || 0;
+                    const feeInfo = extractFee(opp);
+                    const fee = feeInfo.amount;
                     switch(feeFilter) {
                         case 'free':
                             if (fee > 0) return false;
@@ -1054,9 +1158,9 @@
                     case 'newest':
                         return new Date(b.created_at) - new Date(a.created_at);
                     case 'fee_low':
-                        return (parseFloat(a.application_fee) || 0) - (parseFloat(b.application_fee) || 0);
+                        return extractFee(a).amount - extractFee(b).amount;
                     case 'fee_high':
-                        return (parseFloat(b.application_fee) || 0) - (parseFloat(a.application_fee) || 0);
+                        return extractFee(b).amount - extractFee(a).amount;
                     default:
                         return 0;
                 }
