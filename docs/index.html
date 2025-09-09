@@ -226,8 +226,16 @@
         });
 
         function checkConnection() {
-            const url = localStorage.getItem('supabaseUrl');
-            const key = localStorage.getItem('supabaseKey');
+            let url = localStorage.getItem('supabaseUrl');
+            let key = localStorage.getItem('supabaseKey');
+            
+            // Auto-configure with default values if not set
+            if (!url || !key) {
+                url = 'https://hqevaaiketyqhzajqfwj.supabase.co';
+                key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxZXZhYWlrZXR5cWh6YWpxZndqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMjk1NTUsImV4cCI6MjA3MTkwNTU1NX0.hTlqdVtgmbarPGmFNGPBjG73rrq9f1fniAJ78aXHGYA';
+                localStorage.setItem('supabaseUrl', url);
+                localStorage.setItem('supabaseKey', key);
+            }
             
             if (url && key) {
                 supabase = window.supabase.createClient(url, key);
