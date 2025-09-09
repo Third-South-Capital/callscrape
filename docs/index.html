@@ -362,6 +362,73 @@
             // Trim and return
             return text.trim();
         }
+        
+        function summarizeDescription(text, title) {
+            if (!text) return '';
+            
+            // Clean the text first
+            text = cleanDescription(text);
+            
+            // Remove title from beginning if it's duplicated
+            if (title && text.startsWith(title)) {
+                text = text.substring(title.length).trim();
+            }
+            
+            // For short descriptions, return as-is
+            if (text.length <= 300) {
+                return text;
+            }
+            
+            // For long descriptions, create a smart summary
+            // Look for key sentences that contain important information
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            let summary = '';
+            
+            // Priority patterns to look for in sentences
+            const keyPatterns = [
+                /seeking|looking for|invites|call for|opportunity/i,
+                /deadline|submit|application|entry/i,
+                /\$\d+|prize|award|compensation|stipend/i,
+                /exhibition|show|gallery|museum|competition/i,
+                /artists?\s+(who|from|in|of)/i,
+                /theme|focus|subject/i
+            ];
+            
+            // Find the most relevant sentences
+            const relevantSentences = [];
+            const usedIndices = new Set();
+            
+            // First pass: get sentences with key information
+            for (const pattern of keyPatterns) {
+                for (let i = 0; i < sentences.length && relevantSentences.length < 3; i++) {
+                    if (!usedIndices.has(i) && pattern.test(sentences[i])) {
+                        relevantSentences.push(sentences[i].trim());
+                        usedIndices.add(i);
+                        break; // Only one sentence per pattern
+                    }
+                }
+            }
+            
+            // If we don't have enough relevant sentences, take the first ones
+            if (relevantSentences.length < 2) {
+                for (let i = 0; i < sentences.length && relevantSentences.length < 2; i++) {
+                    if (!usedIndices.has(i)) {
+                        relevantSentences.push(sentences[i].trim());
+                        usedIndices.add(i);
+                    }
+                }
+            }
+            
+            // Join the sentences and limit length
+            summary = relevantSentences.join(' ');
+            
+            // Ensure summary isn't too long
+            if (summary.length > 300) {
+                summary = summary.substring(0, 297) + '...';
+            }
+            
+            return summary;
+        }
 
         function renderOpportunities() {
             const grid = document.getElementById('opportunitiesGrid');
@@ -478,7 +545,7 @@
                                 Application: ${fee}
                             </div>
                             
-                            ${enrichedMetadata.has_compensation || enrichedMetadata.is_juried || (enrichedMetadata.quality_score && enrichedMetadata.quality_score >= 7) ? `
+                            ${enrichedMetadata.has_compensation || enrichedMetadata.is_juried ? `
                                 <div class="flex flex-wrap gap-1 pt-2">
                                     ${enrichedMetadata.has_compensation ? `
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -490,18 +557,13 @@
                                             ⚖️ Juried
                                         </span>
                                     ` : ''}
-                                    ${enrichedMetadata.quality_score && enrichedMetadata.quality_score >= 7 ? `
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                            ⭐ High Quality
-                                        </span>
-                                    ` : ''}
                                 </div>
                             ` : ''}
                         </div>
                         
                         ${opp.description && opp.description !== opp.title ? `
-                            <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-2">
-                                ${cleanDescription(opp.description).replace(opp.title, '').substring(0, 150).trim()}${opp.description.length > 150 ? '...' : ''}
+                            <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-3">
+                                ${summarizeDescription(opp.description, opp.title).substring(0, 200)}${opp.description.length > 200 ? '...' : ''}
                             </p>
                         ` : ''}
                     </div>
@@ -576,7 +638,20 @@
                                 ${opp.description ? `
                                     <div>
                                         <h3 class="font-semibold text-gray-900 mb-3">Description</h3>
-                                        <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.description)}</p>
+                                        ${cleanDescription(opp.description).length > 500 ? `
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                                <h4 class="font-medium text-blue-900 mb-2">Summary</h4>
+                                                <p class="text-blue-800">${summarizeDescription(opp.description, opp.title)}</p>
+                                            </div>
+                                            <details class="group">
+                                                <summary class="cursor-pointer text-purple-600 hover:text-purple-800 font-medium mb-2">
+                                                    Show full description
+                                                </summary>
+                                                <p class="text-gray-600 leading-relaxed mt-2">${cleanDescription(opp.description)}</p>
+                                            </details>
+                                        ` : `
+                                            <p class="text-gray-600 leading-relaxed">${cleanDescription(opp.description)}</p>
+                                        `}
                                     </div>
                                 ` : ''}
                                 
@@ -605,13 +680,6 @@
                                     <div>
                                         <h3 class="font-semibold text-gray-900 mb-3">Opportunity Insights</h3>
                                         <div class="grid grid-cols-2 gap-4">
-                                            ${enrichedMetadata.quality_score ? `
-                                                <div class="bg-purple-50 rounded-lg p-3">
-                                                    <div class="text-xs text-purple-600 mb-1">Quality Score</div>
-                                                    <div class="font-bold text-lg text-purple-900">${enrichedMetadata.quality_score}/10</div>
-                                                </div>
-                                            ` : ''}
-                                            
                                             ${enrichedMetadata.has_compensation ? `
                                                 <div class="bg-green-50 rounded-lg p-3">
                                                     <div class="text-xs text-green-600 mb-1">Compensation</div>
