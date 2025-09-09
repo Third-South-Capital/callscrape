@@ -96,13 +96,24 @@
                 </button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <!-- Search -->
                 <div class="md:col-span-2">
                     <input type="text" id="searchInput" placeholder="Search title, organization, or location..." 
                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                            onkeyup="applyFilters()">
                 </div>
+                
+                <!-- Platform Filter -->
+                <select id="platformFilter" onchange="applyFilters()" 
+                        class="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <option value="">All Platforms</option>
+                    <option value="cafe">🎨 CAFE</option>
+                    <option value="artcall">🖼️ ArtCall</option>
+                    <option value="showsubmit">📋 ShowSubmit</option>
+                    <option value="artwork_archive">📚 Artwork Archive</option>
+                    <option value="zapplication">⚡ Zapplication</option>
+                </select>
                 
                 <!-- Type Filter -->
                 <select id="typeFilter" onchange="applyFilters()" 
@@ -643,6 +654,7 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const typeFilter = document.getElementById('typeFilter').value;
             const feeFilter = document.getElementById('feeFilter').value;
+            const platformFilter = document.getElementById('platformFilter').value;
             const sortBy = document.getElementById('sortBy').value;
             
             // Filter
@@ -659,6 +671,9 @@
                     
                     if (!searchableText.includes(searchTerm)) return false;
                 }
+                
+                // Platform filter
+                if (platformFilter && opp.source_platform !== platformFilter) return false;
                 
                 // Type filter
                 if (typeFilter && opp.opportunity_type !== typeFilter) return false;
@@ -742,6 +757,7 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('typeFilter').value = '';
             document.getElementById('feeFilter').value = '';
+            document.getElementById('platformFilter').value = '';
             document.getElementById('sortBy').value = 'deadline';
             
             filteredOpportunities = [...opportunities];
