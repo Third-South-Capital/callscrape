@@ -510,62 +510,80 @@
             // Clean the text first
             text = cleanDescription(text);
             
-            // Remove title from beginning if it's duplicated
-            if (title && text.startsWith(title)) {
-                text = text.substring(title.length).trim();
-            }
-            
-            // For short descriptions, return as-is
-            if (text.length <= 300) {
-                return text;
-            }
-            
-            // For long descriptions, create a smart summary
-            // Look for key sentences that contain important information
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-            let summary = '';
-            
-            // Priority patterns to look for in sentences
-            const keyPatterns = [
-                /seeking|looking for|invites|call for|opportunity/i,
-                /deadline|submit|application|entry/i,
-                /\$\d+|prize|award|compensation|stipend/i,
-                /exhibition|show|gallery|museum|competition/i,
-                /artists?\s+(who|from|in|of)/i,
-                /theme|focus|subject/i
-            ];
-            
-            // Find the most relevant sentences
-            const relevantSentences = [];
-            const usedIndices = new Set();
-            
-            // First pass: get sentences with key information
-            for (const pattern of keyPatterns) {
-                for (let i = 0; i < sentences.length && relevantSentences.length < 3; i++) {
-                    if (!usedIndices.has(i) && pattern.test(sentences[i])) {
-                        relevantSentences.push(sentences[i].trim());
-                        usedIndices.add(i);
-                        break; // Only one sentence per pattern
+            // Remove redundant title from beginning
+            if (title) {
+                const titleClean = title.toLowerCase().replace(/[^\w\s]/g, '');
+                const textStart = text.substring(0, title.length + 50).toLowerCase().replace(/[^\w\s]/g, '');
+                if (textStart.includes(titleClean.substring(0, 20))) {
+                    // Find where the actual description starts
+                    const matches = text.match(/([.!?]\s+|:\s+|—\s+|\n\n)/);
+                    if (matches && matches.index < 200) {
+                        text = text.substring(matches.index + matches[0].length).trim();
                     }
                 }
             }
             
-            // If we don't have enough relevant sentences, take the first ones
-            if (relevantSentences.length < 2) {
-                for (let i = 0; i < sentences.length && relevantSentences.length < 2; i++) {
-                    if (!usedIndices.has(i)) {
-                        relevantSentences.push(sentences[i].trim());
-                        usedIndices.add(i);
+            // Target: 120-150 characters for consistent card display
+            const TARGET_LENGTH = 140;
+            
+            // Extract key information
+            const extractKeyInfo = () => {
+                // Look for the most informative part
+                const patterns = [
+                    // Direct calls to action
+                    /(?:seeking|looking for|invites?|call for)\s+[^.!?]{20,80}/i,
+                    // What it is
+                    /(?:this|the)\s+(?:exhibition|competition|festival|fair|residency|grant)\s+[^.!?]{20,80}/i,
+                    // Purpose statements
+                    /(?:opportunity to|chance to|designed to|features?|showcases?)\s+[^.!?]{20,80}/i,
+                    // Theme descriptions
+                    /(?:theme|focus|celebrating|exploring|featuring)\s*:?\s*[^.!?]{20,80}/i,
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        let extract = match[0].trim();
+                        // Clean up the extract
+                        extract = extract.replace(/^\W+|\W+$/g, '');
+                        if (extract.length >= 50) {
+                            return extract;
+                        }
                     }
                 }
+                
+                return null;
+            };
+            
+            // Try to get key information first
+            let summary = extractKeyInfo();
+            
+            if (!summary) {
+                // Fall back to first sentence or chunk
+                const firstSentence = text.match(/^[^.!?]{50,200}[.!?]?/);
+                summary = firstSentence ? firstSentence[0].trim() : text.substring(0, TARGET_LENGTH);
             }
             
-            // Join the sentences and limit length
-            summary = relevantSentences.join(' ');
+            // Ensure proper length and formatting
+            if (summary.length > TARGET_LENGTH) {
+                // Try to cut at a word boundary
+                summary = summary.substring(0, TARGET_LENGTH);
+                const lastSpace = summary.lastIndexOf(' ');
+                if (lastSpace > 100) {
+                    summary = summary.substring(0, lastSpace);
+                }
+                summary = summary.trim() + '...';
+            }
             
-            // Ensure summary isn't too long
-            if (summary.length > 300) {
-                summary = summary.substring(0, 297) + '...';
+            // Clean up any weird formatting
+            summary = summary.replace(/\s+/g, ' ').trim();
+            
+            // Don't end with incomplete words
+            if (summary.endsWith('...')) {
+                const beforeEllipsis = summary.substring(0, summary.length - 3).trim();
+                if (beforeEllipsis.match(/\w$/)) {
+                    summary = beforeEllipsis + '...';
+                }
             }
             
             return summary;
@@ -707,8 +725,8 @@
                         </div>
                         
                         ${opp.description && opp.description !== opp.title ? `
-                            <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-3">
-                                ${summarizeDescription(opp.description, opp.title).substring(0, 200)}${opp.description.length > 200 ? '...' : ''}
+                            <p class="text-sm text-gray-500 mt-auto pt-4 line-clamp-2 leading-relaxed">
+                                ${summarizeDescription(opp.description, opp.title)}
                             </p>
                         ` : ''}
                     </div>
